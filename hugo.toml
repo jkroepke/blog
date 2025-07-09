@@ -117,7 +117,7 @@ enableEmoji = true
     # ICP info only in China (HTML format is supported)
     icp = ""
     # license info (HTML format is supported)
-    license = '<a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a>'
+    license = '<a rel="license external nofollow noopener noreffer" href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank">CC BY-NC 4.0</a> | <a href="/privacy/">Privacy</a> | <a href="/legal/">Legal</a>'
 
   # LoveIt NEW | 0.2.0 Section (all posts) page config
   [params.section]
@@ -261,7 +261,17 @@ enableEmoji = true
   # posts = ":year/:month/:filename"
   posts = ":year/:month/:contentbasename"
 
-# Privacy config
 [privacy]
-  # LoveIt CHANGED | 0.3.1 privacy of the Google Analytics (can also be configured in params.analytics.google)
+  [privacy.disqus]
+    disable = true
   [privacy.googleAnalytics]
+    disable = false
+    respectDoNotTrack = true
+  [privacy.twitter]
+    disable = true
+    enableDNT = false
+    simple = false
+  [privacy.x]
+    disable = true
+    enableDNT = false
+    simple = false
