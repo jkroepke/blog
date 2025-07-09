@@ -1,0 +1,6 @@
+version: STSv1
+mode: enforce
+mx: smtp.google.com
+mx: aspmx.l.google.com
+mx: *.aspmx.l.google.com
+max_age: 86400
