@@ -247,7 +247,11 @@ enableEmoji = true
 [markup]
   # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
   [markup.highlight]
-    # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
+    codeFences = true
+    guessSyntax = true
+    lineNos = true
+    lineNumbersInTable = true
+  # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
     noClasses = false
 
 # Sitemap config
@@ -267,10 +271,6 @@ enableEmoji = true
   [privacy.googleAnalytics]
     disable = false
     respectDoNotTrack = true
-  [privacy.twitter]
-    disable = true
-    enableDNT = false
-    simple = false
   [privacy.x]
     disable = true
     enableDNT = false
