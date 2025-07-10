@@ -39,7 +39,7 @@ that internal result governs the connection.
 Consequently, the intended external example.com receives no contact. 
 This precisely defines the point where the traffic redirection, or "hijack," can commence.
 
-## RRedirecting Traffic Through Kubernetes DNS
+## Redirecting Traffic Through Kubernetes DNS
 
 This attack scenario unfolds simply, requiring only two steps.
 
@@ -106,11 +106,13 @@ Instead, robust control requires a combination of stringent policy and heightene
 
 Effective strategies include:
 
+* **Securing External Connections with HTTPS:** Of course, consistently employing HTTPS for external connections secures the data payload. This practice encrypts communication and validates server identity, thereby mitigating man-in-the-middle attack consequences even when traffic redirection occurs.
+
 * **Prohibiting Namespace Names Matching Top-Level Domains:**
-  Implement admission controllers, such as OPA or Kyverno,
+  Implement admission controllers, such as OPA or [Kyverno](https://kyverno.io/),
   to reject namespace names that parallel top-level domains like `com`, `org`, `io`, and similar designations.
 
-* **Mandating Fully Qualified Domain Names in Applications:** Always append a trailing dot to domain names within applications. For instance, employ `example.com`. This explicit addition signals to the resolver that the name stands complete, preventing any further appending of search path elements.
+* **Mandating Fully Qualified Domain Names in Applications:** Always append a trailing dot to domain names within applications. For instance, employ `example.com.`. This explicit addition signals to the resolver that the name stands complete, preventing any further appending of search path elements.
 
 * **Limiting Namespace Creation Permissions:** Grant permissions for namespace creation sparingly, restricting this capability to trusted users and automated systems. Many deployments do not necessitate this privilege outside of platform automation processes.
 
