@@ -120,7 +120,8 @@ Effective strategies include:
 * **Securing External Connections with HTTPS:** Of course, consistently employing HTTPS for external connections secures the data payload. This practice encrypts communication and validates server identity, thereby mitigating man-in-the-middle attack consequences even when traffic redirection occurs.
 
 * **Prohibiting Namespace Names Matching Top-Level Domains:**
-  Implement admission controllers, such as OPA or [Kyverno](https://kyverno.io/),
+  Implement admission controllers, such as [Kyverno](https://kyverno.io/) or 
+  a [builtin ValidatingAdmissionPolicy](https://gist.github.com/jkroepke/e75b403388389bed6913fb1bc6927ed7),
   to reject namespace names that parallel top-level domains like `com`, `org`, `io`, and similar designations.
 
 * **Mandating Fully Qualified Domain Names in Applications:** Always append a trailing dot to domain names within applications. For instance, employ `example.com.`. This explicit addition signals to the resolver that the name stands complete, preventing any further appending of search path elements.
