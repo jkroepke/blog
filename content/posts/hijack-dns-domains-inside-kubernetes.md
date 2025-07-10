@@ -4,8 +4,6 @@ title = 'DNS Hijacking in Kubernetes'
 description = 'Kubernetes DNS, while convenient, harbors a security risk: a lack of understanding regarding its resolution mechanisms permits attackers to redirect cluster traffic without exploits, simply by creating specific namespaces and services. Effective protection hinges on policy, strict naming conventions, controlled permissions, and egress restrictions.'
 +++
 
-## How Namespace and Service Names Can Be Used to Redirect Traffic
-
 Kubernetes DNS provides a streamlined way for pods to discover one another using short, user-friendly names, 
 keeping complex IP addresses out of sight. 
 Yet, this very convenience can mask a significant security flaw. Without a thorough grasp of Kubernetes DNS behavior, an opening for attackers might unknowingly be created. 
