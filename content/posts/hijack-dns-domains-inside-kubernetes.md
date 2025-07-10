@@ -75,6 +75,15 @@ kubectl create service externalname example \
   --external-name=wttr.in
 ```
 
+This command creates a service of type [`ExternalName`](https://kubernetes.io/docs/concepts/services-networking/service/#externalname). 
+This particular service type offers a way to link a name inside Kubernetes to an external DNS address. 
+It functions like a special pointer, like a [CNAME record](https://en.wikipedia.org/wiki/CNAME_record) in standard DNS.
+
+Crucially, this service type does not process or proxy any traffic itself. 
+It directs other components within the cluster where to send requests for the given name. 
+In this attack scenario, the service named `example` directs traffic,
+originally seeking `example.com`, to the `wttr.in` endpoint instead.
+
 ### Run the Same Command Again
 
 ```bash
