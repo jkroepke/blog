@@ -2,6 +2,8 @@
 date = '2025-07-09T21:12:46+02:00'
 title = 'DNS Hijacking in Kubernetes'
 description = 'Kubernetes DNS, while convenient, harbors a security risk: a lack of understanding regarding its resolution mechanisms permits attackers to redirect cluster traffic without exploits, simply by creating specific namespaces and services. Effective protection hinges on policy, strict naming conventions, controlled permissions, and egress restrictions.'
+categories = ['Kubernetes']
+tags = ['DNS', 'Kubernetes', 'Security']
 +++
 
 Kubernetes DNS provides a streamlined way for pods to discover one another using short, user-friendly names, 
