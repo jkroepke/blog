@@ -1,7 +1,8 @@
-baseURL = "https://jkroepke.de/"
+[module]
+  [[module.imports]]
+    path = "github.com/dillonzq/LoveIt"
 
-# Change the default theme to be use when building the site with Hugo
-theme = "LoveIt"
+baseURL = "https://jkroepke.de/"
 
 # website title
 title = "Personal Blog | Jan-Otto Kröpke"
