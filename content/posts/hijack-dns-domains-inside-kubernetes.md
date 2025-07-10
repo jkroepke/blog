@@ -6,9 +6,9 @@ categories = ['Kubernetes']
 tags = ['DNS', 'Kubernetes', 'Security']
 +++
 
-Kubernetes DNS provides a streamlined way for pods to discover one another using short, user-friendly names, 
-keeping complex IP addresses out of sight. 
-Yet, this very convenience can mask a significant security flaw. Without a thorough grasp of Kubernetes DNS behavior, an opening for attackers might unknowingly be created. 
+Kubernetes DNS provides a streamlined way for pods to discover one another using short, user-friendly names,
+keeping complex IP addresses out of sight.
+Yet, this very convenience can mask a significant security flaw. Without a thorough grasp of Kubernetes DNS behavior, an opening for attackers might unknowingly be created.
 Consider this: the ability to create namespaces and services allows an attacker to reroute traffic intended to leave a cluster, diverting it for their own purposes.
 
 ## How DNS Resolution Works in Kubernetes
@@ -21,15 +21,15 @@ There are three parts involved in this behavior:
 
 A typical pod's `resolv.conf` configuration often appears as follows:
 
-```
+```text
 nameserver 10.96.0.10
 search default.svc.cluster.local svc.cluster.local cluster.local
 options ndots:5
 ```
 
-When a pod attempts to resolve a domain, such as `example.com`, the resolver notes only a single dot within the name. 
-Because the `ndots` option is set to `5`, this name is not immediately treated as fully qualified. 
-Instead, the resolver begins by appending domains from its configured search path. 
+When a pod attempts to resolve a domain, such as `example.com`, the resolver notes only a single dot within the name.
+Because the `ndots` option is set to `5`, this name is not immediately treated as fully qualified.
+Instead, the resolver begins by appending domains from its configured search path.
 This process constructs and attempts to resolve the following in sequence:
 
 1. `example.com.<pod-namespace>.svc.cluster.local`
@@ -38,7 +38,7 @@ This process constructs and attempts to resolve the following in sequence:
 
 Should any of these internally constructed names resolve to an existing internal service within the cluster,
 that internal result governs the connection.
-Consequently, the intended external example.com receives no contact. 
+Consequently, the intended external example.com receives no contact.
 This precisely defines the point where the traffic redirection, or "hijack," can commence.
 
 ## Redirecting Traffic Through Kubernetes DNS
@@ -81,7 +81,7 @@ kubectl create service externalname example \
 kubectl run --rm -ti --image=alpine dns-test -- wget http://example.com -qO-
 ```
 
-This time, the result no longer corresponds to the example domain. 
+This time, the result no longer corresponds to the example domain.
 Instead, it presents the weather forecast from `wttr.in`.
 
 ```
@@ -123,10 +123,10 @@ Effective strategies include:
 ## Concluding Remarks
 
 Kubernetes DNS offers significant power and straightforward operation;
-however, that very simplicity sometimes presents a vulnerability. 
-A thorough understanding of how names resolve within a cluster proves essential. 
+however, that very simplicity sometimes presents a vulnerability.
+A thorough understanding of how names resolve within a cluster proves essential.
 Without such comprehension, an attacker exploits these default behaviors, redirecting traffic in unforeseen ways.
 
-Any individual possessing the ability to create a namespace, 
+Any individual possessing the ability to create a namespace,
 and a service gains the means to interpose their infrastructure between a pod and the internet.
 Significantly, they achieve this without requiring a single exploit.
