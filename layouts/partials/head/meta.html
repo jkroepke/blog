@@ -1,0 +1,31 @@
+{{- $params := .Scratch.Get "params" -}}
+
+<meta name="Description" content="{{ $params.description | default .Site.Params.description }}">
+
+{{- template "_internal/opengraph.html" . -}}
+{{- template "_internal/twitter_cards.html" . -}}
+
+<meta name="application-name" content="{{ .Site.Params.app.title | default .Site.Title }}">
+<meta name="apple-mobile-web-app-title" content="{{ .Site.Params.app.title | default .Site.Title }}">
+
+{{- with .Site.Params.app.themeColor -}}
+<meta name="theme-color" content="{{ . }}">
+{{- end -}}
+
+{{- with .Site.Params.app.tileColor -}}
+<meta name="msapplication-TileColor" content="{{ . }}">
+{{- end -}}
+
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'none';
+  object-src 'none';
+  script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com;
+  font-src 'self';
+  style-src 'self' 'unsafe-inline';
+  manifest-src 'self';
+  img-src * data:;
+  connect-src 'self'{{ if eq hugo.Environment "development" }} ws://localhost:1313 {{end}}https://www.google-analytics.com;
+  frame-src https://www.googletagmanager.com;
+  base-uri 'self';
+  form-action 'self';
+">
