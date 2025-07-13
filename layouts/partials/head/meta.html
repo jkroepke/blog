@@ -24,7 +24,7 @@
   style-src 'self' 'unsafe-inline';
   manifest-src 'self';
   img-src * data:;
-  connect-src 'self'{{ if eq hugo.Environment "development" }} ws://localhost:1313 {{end}}https://www.google-analytics.com;
+  connect-src 'self' {{ if eq hugo.Environment "development" }}ws://localhost:1313 {{end}}https://www.google-analytics.com;
   frame-src https://www.googletagmanager.com;
   base-uri 'self';
   form-action 'self';
