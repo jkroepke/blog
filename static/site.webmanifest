@@ -1,6 +1,6 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Personal Blog | Jan-Otto Kröpke",
+  "short_name": "jkroepke.de",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
