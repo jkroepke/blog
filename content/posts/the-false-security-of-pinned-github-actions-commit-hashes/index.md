@@ -63,7 +63,12 @@ So, a person can fork `actions/checkout` and add some bad code to their copy:
          if (!repositoryPath ||
 ```
 
-A person can make this malicious commit appear even more legitimate. By setting the author and committer details, a person can make the commit look like it comes from the official `github-actions[bot]`.
+For demo purpose, a weather report from [wttr.in](https://wttr.in) is displayed in the post run step. 
+Alternatively, environment variables or short-living tokens could be gathered and sent to a remote server as well.
+
+A person can make this malicious commit appear even more legitimate.
+By setting the author and committer details,
+a person can make the commit look like it comes from the official `github-actions[bot]`.
 
 ```bash
 GIT_AUTHOR_NAME="github-actions[bot]" \                                      
