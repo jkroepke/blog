@@ -5,8 +5,8 @@ title = 'The False Security of Pinned GitHub Actions Commit Hashes'
 description = 'An exploit reveals a hidden security flaw in GitHub Actions. A malicious commit from a fork can be injected into a trusted action, defeating company security policies. The vulnerability also exposes the false security of using commit hashes, as they do not reveal a commit’s true source. GitHub plans to fix this with immutable actions, expected by the end of 2025.'
 categories = ['GitHub']
 tags = ['CI/CD', 'GitHub', 'Security']
-hiddenFromHomePage = false
-hiddenFromSearch = false
+hiddenFromHomePage = true
+hiddenFromSearch = true
 featuredImage = 'images/wttr-github-actions.png'
 +++
 
