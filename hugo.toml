@@ -124,6 +124,7 @@ enableEmoji = true
     RSS = true
 
   [params.page]
+    lightgallery = true
     [params.page.code]
       # whether to show the copy button of the code block
       copy = true
