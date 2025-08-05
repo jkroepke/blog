@@ -124,6 +124,7 @@ enableEmoji = true
     RSS = true
 
   [params.page]
+    lightgallery = true
     [params.page.code]
       # whether to show the copy button of the code block
       copy = true
@@ -153,11 +154,12 @@ enableEmoji = true
   # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
   [markup.highlight]
     codeFences = true
-    guessSyntax = true
+    guessSyntax = false
     lineNos = true
     lineNumbersInTable = true
-  # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
+    # false is a necessary configuration (https://github.com/dillonzq/LoveIt/issues/158)
     noClasses = false
+    style = "solarized"
 
 # Sitemap config
 [sitemap]
