@@ -1,7 +1,3 @@
-[module]
-  [[module.imports]]
-    path = "github.com/dillonzq/LoveIt"
-
 baseURL = "https://jkroepke.de/"
 
 # website title
@@ -182,3 +178,7 @@ enableEmoji = true
     disable = true
     enableDNT = false
     simple = false
+
+[module]
+  [[module.imports]]
+    path = "github.com/dillonzq/LoveIt"
