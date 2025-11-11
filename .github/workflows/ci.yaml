@@ -25,7 +25,7 @@ jobs:
       contents: read
     env:
       # renovate: github=sass/dart-sass
-      DART_SASS_VERSION: 1.93.2
+      DART_SASS_VERSION: 1.94.0
       # renovate: github=gohugoio/hugo
       HUGO_VERSION: 0.152.2
       HUGO_ENVIRONMENT: production
