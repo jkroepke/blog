@@ -27,7 +27,7 @@ jobs:
       # renovate: github=sass/dart-sass
       DART_SASS_VERSION: 1.97.3
       # renovate: github=gohugoio/hugo
-      HUGO_VERSION: 0.154.5
+      HUGO_VERSION: 0.155.0
       HUGO_ENVIRONMENT: production
       TZ: Europe/Berlin
     steps:
