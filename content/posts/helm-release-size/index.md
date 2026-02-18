@@ -1,6 +1,6 @@
 +++
 date = '2026-02-18T07:12:46+02:00'
-title = 'Handling the 1MB Helm Release Size Limit (from a chart maintainer’s perspective)'
+title = 'Handling Large CRDs and the 1MB Helm Release Limit'
 description = 'Helm releases are stored as Kubernetes Secrets, which have a hard 1 MiB size limit. This post explores why this limit exists, how large CRDs exacerbate the problem, and practical techniques for chart maintainers to reduce release size using subcharts, minification, and compression.'
 categories = ['Kubernetes']
 tags = ['Kubernetes', 'Helm']
@@ -30,9 +30,16 @@ That means: a Helm release cannot exceed ~1 MiB, and the “effective” limit i
 
 In the operator ecosystem, CRDs tend to grow over time. A single CRD can be huge, and a set of CRDs can be massive. Prometheus Operator is a well-known example: the CRDs can easily exceed multiple megabytes on disk.
 
-And here’s the kicker: CRDs in Helm charts are special. Helm installs CRDs from the `crds/` directory during install/upgrade, but generally does not manage them as part of the normal lifecycle (it won’t upgrade/delete them the same way as templated resources). Yet, depending on chart structure, the CRD files may still end up being stored in the release payload in a way that can explode the size.
+And here’s the kicker: CRDs in Helm charts are special. Helm natively installs CRDs from the `crds/` directory during install/upgrade, but generally [does not manage them](https://helm.sh/docs/chart_best_practices/custom_resource_definitions/#some-caveats-and-explanations) as part of the normal lifecycle (it won’t upgrade or delete them the same way it handles templated resources).
 
-So you get the worst of both worlds: CRDs are large, Helm doesn’t really “manage” them, but the release state may still contain them (sometimes effectively twice).
+
+{{< admonition type=quote open=true >}}
+There is no support at this time for upgrading or deleting CRDs using Helm. This was an explicit decision after much community discussion due to the danger for unintentional data loss. Furthermore, there is currently no community consensus around how to handle CRDs and their lifecycle. As this evolves, Helm will add support for those use cases.
+{{< /admonition >}}
+
+Because of this limitation, many maintainers bypass the native `crds/` feature and instead use **Custom Hook Jobs** (templated Kubernetes Jobs) to manage CRDs manually (more on that in Technique 4).
+
+However, whether you use the native `crds/` folder or Custom Hooks, the CRD files often end up being stored in the release payload in a way that explodes the size. So you get the worst of both worlds: CRDs are large, Helm doesn’t really “manage” them (in the native case), but the release state still contains them.
 
 ## Reproducing and measuring the problem
 
@@ -134,7 +141,9 @@ This is the most effective and maintainable trick I’ve seen for charts. Move C
 
 #### Why this works
 
-Helm has a quirky behavior: for the root chart, chart files can end up being stored in the release in a way that is disproportionately large (and can include duplication depending on internal representation). For subcharts, Helm does not persist chart files in the same way.
+Helm releases store the chart that was installed. When using a local subchart dependency (stored in `charts/`), Helm flattens the templates but still carries the charts. However, Helm treats the root chart differently regarding file inclusion rules compared to dependencies in the stored release object. The release object structure minimizes the payload of dependencies compared to the root chart's `files` map, meaning files in subcharts don't bloat the release secret as much as files in the root chart.
+
+This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2021](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date. (Credit to the VictoriaMetrics team for highlighting this investigative trail).
 
 So by shifting CRDs into an “unmanaged CRD subchart”, Helm still installs CRDs on fresh installs (because they’re still in `crds/`), but the CRD files stop bloating the release Secret.
 
@@ -156,7 +165,10 @@ Helm’s internal gzip compression applies to the release blob, but you can ofte
 
 #### Why bz2?
 
-`bz2` is surprisingly effective for large YAML/JSON CRDs. Other options have trade-offs: `xz` compresses better but reproducible archives can be painful, and `zstd` often isn’t available in minimal images. Avoiding custom images keeps maintenance simpler.
+`bz2` is surprisingly effective for large YAML/JSON CRDs. Other options have trade-offs: `xz` compresses better, but creating binary-identical archives across macOS and Linux is incredibly difficult. This breaks CI pipelines that check for changes via `git diff` to ensure the committed binary matches the source (a critical security check to prevent malicious code injection). Additionally, `zstd` often isn’t available in minimal images.
+
+The main reason to choose `bz2` is that standard `busybox` images (commonly used for init containers) include `bunzip2` by default. This avoids the need to maintain custom container images just to decompress a file.
+
 
 A common pattern is to use an initContainer with `busybox` to decompress the archive and a `kubectl` container to apply the CRDs. This keeps the hook job small, portable, and reproducible.
 
