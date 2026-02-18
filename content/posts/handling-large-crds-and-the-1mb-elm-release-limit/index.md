@@ -1,5 +1,5 @@
 +++
-date = '2026-02-18T07:12:46+02:00'
+date = '2026-02-18T22:35:00+02:00'
 title = 'Handling Large CRDs and the 1MB Helm Release Limit'
 description = 'Helm releases are stored as Kubernetes Secrets, which have a hard 1 MiB size limit. This post explores why this limit exists, how large CRDs exacerbate the problem, and practical techniques for chart maintainers to reduce release size using subcharts, minification, and compression.'
 categories = ['Kubernetes']
