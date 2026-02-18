@@ -64,9 +64,9 @@ kubectl get secrets sh.helm.release.v1.kube-prometheus-stack.v2 \
   | base64 -d | base64 -d | zcat - > release.json
 ```
 
-This give us the raw JSON data of the helm release. Then I upload the data to an [json size analyser](https://www.debugbear.com/json-size-analyzer):
+This gives us the raw JSON data of the helm release. Then I upload the data to a [JSON size analyzer](https://www.debugbear.com/json-size-analyzer):
 
-![Overview of data sizes in KB by JSON property](./images/json-property-size-orginal.png)
+![Overview of data sizes in KB by JSON property](./images/json-property-size-original.png)
 
 ```bash
 % jq -r '.chart.files[] | (.data | length | tostring) + ": " + .name' release.json | sort -n
@@ -91,7 +91,7 @@ This give us the raw JSON data of the helm release. Then I upload the data to an
 
 Helm stores chart files in the release, which can include `README.md`, `CONTRIBUTING.md`, and other large documents.
 
-You can exclude files via `.helmignore`, but that also removes them from the chart package (which affects ArtifactHub and users who inspect the chart archive).
+You can exclude files via `.helmignore`. However, this removes them from the chart package entirely. `helm package` uses `.helmignore` to filter the `.tgz`, which means these files won't be visible on ArtifactHub or to users inspecting the chart.
 
 {{< admonition type=tip title="Maintainer tip" open=true >}}
 Keep `README.md` minimal and move bulk content into `USAGE.md` or `UPGRADES.md`. Then consider ignoring only the extra-large docs if you must—balancing chart usability, ArtifactHub quality, and release size.
@@ -112,7 +112,7 @@ for i in crds/*.yaml; do
 done
 ```
 
-Would result into a much lower release size. 1031276 -> 851536 bytes
+This dramatically reduces the release size: `1,031,276` -> `851,536` bytes.
 
 ```bash
 jq -r '.chart.files[] | (.data | length | tostring) + ": " + .name' release.json | sort -n
@@ -161,16 +161,19 @@ A pragmatic trick is to store CRDs as a compressed archive in the chart, and dec
 
 #### Why bother, doesn’t Helm already gzip?
 
-Helm’s internal gzip compression applies to the release blob, but you can often get better results by pre-compressing large static assets (like CRD YAML) yourself, so they occupy fewer bytes before Helm encodes them into the release state.
+Helm does gzip the release object, but the math favors pre-compression. Helm gzips the *entire* release payload, which includes base64-encoded file contents. Since base64 encoding inflates data by ~33%, Helm is often compressing a larger blob than necessary.
+
+By compressing a 1MB text file into a ~100KB `bz2` binary yourself, you drastically reduce the input size before it ever hits Helm's encoding pipeline. Even though Helm will base64-encode your binary archive (growing it slightly to ~133KB), the final impact on the release size is far smaller than letting Helm handle the raw text.
 
 #### Why bz2?
 
 `bz2` is surprisingly effective for large YAML/JSON CRDs. Other options have trade-offs: `xz` compresses better, but creating binary-identical archives across macOS and Linux is incredibly difficult. This breaks CI pipelines that check for changes via `git diff` to ensure the committed binary matches the source (a critical security check to prevent malicious code injection). Additionally, `zstd` often isn’t available in minimal images.
 
-The main reason to choose `bz2` is that standard `busybox` images (commonly used for init containers) include `bunzip2` by default. This avoids the need to maintain custom container images just to decompress a file.
+The main reason to choose `bz2` is that standard `busybox` images (commonly used for init containers and alpine just based on `busybox`) include `bunzip2` by default. This enables a common, robust pattern: use an initContainer with `busybox` to decompress the archive, sharing the volume with a standard `kubectl` container that applies the CRDs. This keeps the hook job small, portable and reproducible.
 
+To see a real-life example of this technique in action, check out the implementation in the [kube-prometheus-stack chart](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack/charts/crds/templates/upgrade).
 
-A common pattern is to use an initContainer with `busybox` to decompress the archive and a `kubectl` container to apply the CRDs. This keeps the hook job small, portable, and reproducible.
+Once `zstd` becomes more universally available in minimal images, it may be worth revisiting the compression choice for even better ratios.
 
 ## Practical guidance: what I would recommend as a maintainer
 
