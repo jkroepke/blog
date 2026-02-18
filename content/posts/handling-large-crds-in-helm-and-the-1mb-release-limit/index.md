@@ -186,27 +186,40 @@ To see a real-life example of this technique in action, check out the implementa
 
 Once `zstd` becomes more universally available in minimal images, it may be worth revisiting the compression choice for even better ratios.
 
-### Technique 5: Talk to the upstream maintainer
+### Technique 5: Fetch CRDs from upstream (Variant of Technique 4)
 
-Sometimes the real solution isn't about better packaging, but about changing how artifacts are delivered. If you are packaging a third-party project, open an issue upstream and discuss alternative delivery methods.
+This approach is effectively a modification of **Technique 4**. You still use a **Hook Job** (pre-install/pre-upgrade) to manage the CRD lifecycle, but instead of bundling a `bz2` archive inside the chart, you fetch the CRDs dynamically from an upstream source or the operator image itself.
+
+This removes the CRD payload from the release entirely, but the hook mechanism remains mandatory.
 
 #### 1. Can the operator binary print its own CRDs?
 
-Some operators (like Velero) include a CLI command to output their own CRDs. This allows your Helm hook to simply pull the operator image and run a command to apply CRDs, avoiding the need to package YAML files inside the chart at all.
+Some operators (like Velero) include a CLI command to output their own CRDs. This allows your Helm hook to simply pull the operator image (which is already part of your chart) and run a command to apply CRDs.
 
-For example, [Velero's Helm chart](https://github.com/vmware-tanzu/helm-charts/blob/b07a5226f3e4b25b8d44ea2266dac680bf8b5c2a/charts/velero/templates/upgrade-crds/upgrade-crds.yaml#L81) uses an `pre-install` hook that runs:
+For example, [Velero's Helm chart](https://github.com/vmware-tanzu/helm-charts/blob/b07a5226f3e4b25b8d44ea2266dac680bf8b5c2a/charts/velero/templates/upgrade-crds/upgrade-crds.yaml#L81) uses a hook that runs:
 ```bash
 velero install --crds-only --dry-run -o yaml | kubectl apply -f -
 ```
 
 I successfully advocated for this approach with the Prometheus Operator maintainers as well (see [issue #7270](https://github.com/prometheus-operator/prometheus-operator/issues/7270)), proving that upstream projects are often open to these improvements to help their ecosystem.
 
+This method is **self-contained**: since your chart already requires the operator image to run, you aren't adding a new external dependency—you're just reusing an existing one to generate the CRDs.
+
 #### 2. Can they ship CRDs as an OCI Artifact?
 
 With Kubernetes 1.35+, the [Image Volume](https://kubernetes.io/docs/tasks/configure-pod-container/image-volumes/) feature allows you to mount an OCI image directly as a volume.
 If the upstream project publishes a dedicated "CRD image" (containing just the YAML files), you can mount that image into your hook job and `kubectl apply` the files directly from the mount path.
 
-This is the cleanest future-proof solution: it offloads storage to the registry and handling to the container runtime, bypassing Helm's release payload entirely.
+{{< admonition type=warning open=true >}}
+**Trade-offs vs. Technique 4:**
+
+Technique 5 replaces the bundled `bz2` archive from Technique 4 with dynamic generation/fetch, but the **mandatory hook job** remains.
+
+1.  **GitOps Compatibility:** For tools like [FluxCD](https://fluxcd.io/flux/components/helm/helmreleases/#controlling-the-lifecycle-of-custom-resource-definitions) and ArgoCD to perform **native CRD management**, the CRDs must be present in the chart artifact (as in **Technique 3**). They cannot "see" CRDs that are generated dynamically inside a hook.
+2.  **Dependencies:**
+    *   **Method 1 (Operator CLI):** Remains self-contained (air-gap friendly) as long as you have the operator image.
+    *   **Method 2 (OCI Image):** Requires pulling a separate CRD image, which must be mirrored for air-gapped environments.
+{{< /admonition >}}
 
 ## Practical guidance: what I’d recommend as a maintainer
 
