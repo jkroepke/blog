@@ -49,10 +49,10 @@ jobs:
       
       - name: Install Dart Sass
         run: |
-          wget -O "${RUNNER_TEMP}/dart-sass.tar.gz" https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz
+          wget -O "${RUNNER_TEMP}/dart-sass.tar.gz" "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
           tar -xf "${RUNNER_TEMP}/dart-sass.tar.gz" --directory "${RUNNER_TEMP}"
-          mv "${RUNNER_TEMP}/dart-sass/" /usr/local/bin
-          echo "/usr/local/bin/dart-sass" >> $GITHUB_PATH
+          mv "${RUNNER_TEMP}/dart-sass/" "/usr/local/bin"
+          echo "/usr/local/bin/dart-sass" >> "${GITHUB_PATH}"
         env:
           RUNNER_TEMP: ${{ runner.temp }}
       
