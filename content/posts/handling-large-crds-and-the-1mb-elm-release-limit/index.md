@@ -142,8 +142,8 @@ This is the most effective and maintainable trick I’ve seen for charts. Move C
 
 #### Why this works
 
-Helm releases store the chart that was installed. When using a local subchart dependency (stored in `charts/`), Helm flattens the templates but still carries the charts. 
-However, Helm treats the root chart differently regarding file inclusion rules compared to dependencies in the stored release object. 
+Helm releases store the chart that was installed. When using a local subchart dependency (stored in `charts/`), Helm flattens the templates but still carries the charts.
+However, Helm treats the root chart differently regarding file inclusion rules compared to dependencies in the stored release object.
 The release object structure minimizes the payload of dependencies compared to the root chart's `files` map, meaning files in subcharts don't bloat the release secret as much as files in the root chart.
 
 This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2021](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date. (Credit to the VictoriaMetrics team for highlighting this investigative trail).
