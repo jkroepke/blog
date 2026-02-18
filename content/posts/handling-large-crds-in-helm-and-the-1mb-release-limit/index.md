@@ -229,6 +229,10 @@ Once you have the data, try the structural fix first: move CRDs into a dedicated
 
 This combination is usually enough even for very large CRD suites.
 
+{{< admonition type=tip title="Maintainer tip" open=true >}}
+This applies to Grafana Dashboards as well. Grafana Dashboards are often large JSON files, and moving them to a subchart results in the same optimization as described in **Technique 3**.
+{{< /admonition >}}
+
 ## Closing thoughts
 
 The 1 MiB Kubernetes object limit isn’t going away—and Helm releases live inside Kubernetes objects. So for chart maintainers, the right mindset is to treat release size as a real constraint, assume CRDs will grow, and design chart structure so CRDs don’t bloat the release state.
