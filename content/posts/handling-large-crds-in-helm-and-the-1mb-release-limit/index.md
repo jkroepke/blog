@@ -146,7 +146,7 @@ Helm releases store the chart that was installed. When using a local subchart de
 However, Helm treats the root chart differently regarding file inclusion rules compared to dependencies in the stored release object.
 The release object structure minimizes the payload of dependencies compared to the root chart's `files` map, meaning files in subcharts don't bloat the release secret as much as files in the root chart.
 
-This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2021](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date. (Credit to the VictoriaMetrics team for highlighting this investigative trail).
+This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2021](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date.
 
 So by shifting CRDs into an “unmanaged CRD sub-chart”, Helm still installs CRDs on fresh installations (because they’re still in `crds/`), but the CRD files stop bloating the release Secret.
 
