@@ -186,6 +186,28 @@ To see a real-life example of this technique in action, check out the implementa
 
 Once `zstd` becomes more universally available in minimal images, it may be worth revisiting the compression choice for even better ratios.
 
+### Technique 5: Talk to the upstream maintainer
+
+Sometimes the real solution isn't about better packaging, but about changing how artifacts are delivered. If you are packaging a third-party project, open an issue upstream and discuss alternative delivery methods.
+
+#### 1. Can the operator binary print its own CRDs?
+
+Some operators (like Velero) include a CLI command to output their own CRDs. This allows your Helm hook to simply pull the operator image and run a command to apply CRDs, avoiding the need to package YAML files inside the chart at all.
+
+For example, [Velero's Helm chart](https://github.com/vmware-tanzu/helm-charts/blob/b07a5226f3e4b25b8d44ea2266dac680bf8b5c2a/charts/velero/templates/upgrade-crds/upgrade-crds.yaml#L81) uses an `pre-install` hook that runs:
+```bash
+velero install --crds-only --dry-run -o yaml | kubectl apply -f -
+```
+
+I successfully advocated for this approach with the Prometheus Operator maintainers as well (see [issue #7270](https://github.com/prometheus-operator/prometheus-operator/issues/7270)), proving that upstream projects are often open to these improvements to help their ecosystem.
+
+#### 2. Can they ship CRDs as an OCI Artifact?
+
+With Kubernetes 1.35+, the [Image Volume](https://kubernetes.io/docs/tasks/configure-pod-container/image-volumes/) feature allows you to mount an OCI image directly as a volume.
+If the upstream project publishes a dedicated "CRD image" (containing just the YAML files), you can mount that image into your hook job and `kubectl apply` the files directly from the mount path.
+
+This is the cleanest future-proof solution: it offloads storage to the registry and handling to the container runtime, bypassing Helm's release payload entirely.
+
 ## Practical guidance: what I’d recommend as a maintainer
 
 If you maintain a chart and are hitting (or nearing) the limit, start by measuring your release usage by decoding the release and inspecting `.chart.files`.
