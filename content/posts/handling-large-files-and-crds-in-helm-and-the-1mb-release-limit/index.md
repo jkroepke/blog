@@ -67,7 +67,11 @@ kubectl get secrets sh.helm.release.v1.kube-prometheus-stack.v2 \
 
 This gives us the raw JSON data of the helm release. Then I upload the data to a [JSON size analyzer](https://www.debugbear.com/json-size-analyzer):
 
-![Overview of data sizes in KB by JSON property](./images/json-property-size-original.png)
+{{< figure
+src="./images/json-property-size-original.png"
+alt="Overview of data sizes in KB by JSON property"
+caption="Overview of data sizes in KB by JSON property"
+>}}
 
 ```bash
 % jq -r '.chart.files[] | (.data | length | tostring) + ": " + .name' release.json | sort -n
@@ -215,10 +219,10 @@ If the upstream project publishes a dedicated "CRD image" (containing just the Y
 
 Technique 5 replaces the bundled `bz2` archive from Technique 4 with dynamic generation/fetch, but the **mandatory hook job** remains.
 
-1.  **GitOps Compatibility:** For tools like [FluxCD](https://fluxcd.io/flux/components/helm/helmreleases/#controlling-the-lifecycle-of-custom-resource-definitions) and ArgoCD to perform **native CRD management**, the CRDs must be present in the chart artifact (as in **Technique 3**). They cannot "see" CRDs that are generated dynamically inside a hook.
-2.  **Dependencies:**
-    *   **Method 1 (Operator CLI):** Remains self-contained (air-gap friendly) as long as you have the operator image.
-    *   **Method 2 (OCI Image):** Requires pulling a separate CRD image, which must be mirrored for air-gapped environments.
+1. **GitOps Compatibility:** For tools like [FluxCD](https://fluxcd.io/flux/components/helm/helmreleases/#controlling-the-lifecycle-of-custom-resource-definitions) and ArgoCD to perform **native CRD management**, the CRDs must be present in the chart artifact (as in **Technique 3**). They cannot "see" CRDs that are generated dynamically inside a hook.
+2. **Dependencies:**
+   * **Method 1 (Operator CLI):** Remains self-contained (air-gap friendly) as long as you have the operator image.
+   * **Method 2 (OCI Image):** Requires pulling a separate CRD image, which must be mirrored for air-gapped environments.
 {{< /admonition >}}
 
 ## Practical guidance: what I’d recommend as a maintainer

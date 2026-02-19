@@ -27,6 +27,13 @@ enableEmoji = true
   [caches.images]
     dir = ':cacheDir/images'
 
+[imaging]
+  compression = 'lossless'
+  quality = 75
+  [imaging.exif]
+    disableDate = true
+    disableLatLong = true
+
 # Menu config
 [menu]
   [[menu.main]]
