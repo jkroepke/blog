@@ -61,15 +61,6 @@ Editing guidance and conventions
 - Go code (if present): format with `gofmt` and run `go vet`/`go test` as applicable.
 - Keep commits small and focused. Include a short, descriptive commit message and reference the area changed (e.g., content/posts, layouts/partials, assets/css).
 
-Build and local validation (recommended commands)
-- Preview locally (development server):
-  - `hugo server -D`  # preview drafts and incremental rebuilds
-- Build site (production):
-  - `hugo --gc --minify`  # generates `public/` with optimizations
-- Quick smoke validation after build:
-  - Ensure `hugo` exits with status 0 and prints no unexpected errors.
-  - Spot-check `public/index.html` and the changed page(s) in `public/`.
-
 Linting and formatting
 - Markdown: run a Markdown linter if available (e.g., `markdownlint`), and ensure headings and front matter are consistent.
 - HTML templates: validate template syntax by running `hugo` — template errors will surface as build failures.

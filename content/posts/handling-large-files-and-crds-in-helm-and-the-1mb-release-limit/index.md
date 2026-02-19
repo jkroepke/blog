@@ -150,7 +150,7 @@ Helm releases store the chart that was installed. When using a local subchart de
 However, Helm treats the root chart differently regarding file inclusion rules compared to dependencies in the stored release object.
 The release object structure minimizes the payload of dependencies compared to the root chart's `files` map, meaning files in subcharts don't bloat the release secret as much as files in the root chart.
 
-This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2021](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date.
+This specific behavior regarding how Helm handles files in the root chart versus subcharts has been [documented upstream since 2022](https://github.com/helm/helm/issues/11493), though no structural solution has been implemented in Helm core to date.
 
 So by shifting CRDs into an “unmanaged CRD sub-chart”, Helm still installs CRDs on fresh installations (because they’re still in `crds/`), but the CRD files stop bloating the release Secret.
 
@@ -240,5 +240,7 @@ This applies to Grafana Dashboards as well. Grafana Dashboards are often large J
 ## Closing thoughts
 
 The 1 MiB Kubernetes object limit isn’t going away—and Helm releases live inside Kubernetes objects. So for chart maintainers, the right mindset is to treat release size as a real constraint, assume CRDs will grow, and design chart structure so CRDs don’t bloat the release state.
+
+There have been attempts to fix this upstream, such as the 2022 proposal [HIP 0013: Support Helm release data stored in multiple K8s Secrets](https://github.com/helm/community/pull/256) or discussions around [changing the compression algorithm](https://github.com/helm/community/pull/256#discussion_r1648565157). However, these initiatives haven't seen significant progress. Until such architectural changes land in Helm core, the limit remains a hard constraint that chart maintainers must work around.
 
 If you maintain operator-style charts, you’ll likely hit this sooner or later. The good news is that with a few structural tricks (especially the subchart approach), you can keep your releases healthy and future-proof without sacrificing UX or maintainability.
