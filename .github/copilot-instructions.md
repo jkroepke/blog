@@ -161,3 +161,24 @@ Guidance when using admonitions
 Example (recommended pattern for reproducible advice):
 
 - Wrap short error blocks or actionable hints in an admonition and include the minimum reproducer.
+
+LoveIt Theme Image Shortcode
+- Prefer the `image` shortcode over standard Markdown images `![]()` or the `figure` shortcode. It supports lazy loading (`lazysizes`) and lightboxes (`lightGallery`).
+
+Parameters:
+- `src` (required): URL/path to the image.
+- `alt` (optional): Alternate text (defaults to `src`).
+- `caption` (optional): Image caption (supports Markdown).
+- `title` (optional): Hover title.
+- `src_s` (optional): Thumbnail URL.
+- `src_l` (optional): HD image URL.
+- `linked` (optional): `true` (default) checks if image should be hyperlinked.
+
+Example:
+{{< image src="/images/k8s-diagram.png" caption="Kubernetes Diagram" >}}
+
+Compatibility Note
+- LoveIt 0.2.10+: supports local resource references (page bundles).
+
+Formatting Note
+- Use Hugo-flavored Markdown (Goldmark).

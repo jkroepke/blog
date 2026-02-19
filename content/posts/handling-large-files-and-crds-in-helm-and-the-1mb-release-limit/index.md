@@ -67,8 +67,8 @@ kubectl get secrets sh.helm.release.v1.kube-prometheus-stack.v2 \
 
 This gives us the raw JSON data of the helm release. Then I upload the data to a [JSON size analyzer](https://www.debugbear.com/json-size-analyzer):
 
-{{< figure
-src="./images/json-property-size-original.png"
+{{< image
+src="images/json-property-size-original.png"
 alt="Overview of data sizes in KB by JSON property"
 caption="Overview of data sizes in KB by JSON property"
 >}}
