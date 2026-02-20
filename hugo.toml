@@ -133,9 +133,32 @@ enableEmoji = true
       copy = true
     [params.page.share]
       enable = true
+      X = false
+      Threads = false
+      Facebook = false
       Linkedin = true
-      Twitter = true
-      X = true
+      Whatsapp = false
+      Pinterest = false
+      Tumblr = false
+      HackerNews = true
+      Reddit = false
+      VK = false
+      Buffer = false
+      Xing = false
+      Line = false
+      Instapaper = false
+      Pocket = false
+      Flipboard = false
+      Weibo = false
+      Blogger = false
+      Baidu = false
+      Odnoklassniki = false
+      Evernote = false
+      Skype = false
+      Trello = false
+      Diaspora = false
+      Mix = false
+      Telegram = false
 
   [params.analytics]
     enable = true
