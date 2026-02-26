@@ -133,8 +133,8 @@ enableEmoji = true
       copy = true
     [params.page.share]
       enable = true
-      X = false
-      Threads = false
+      X = true
+      Threads = true
       Facebook = false
       Linkedin = true
       Whatsapp = false
@@ -172,7 +172,7 @@ enableEmoji = true
     [params.cookieconsent.content]
       message = "This website uses cookies to ensure you get the best experience on our website."
       dismiss = "Got it!"
-      link = ""
+      link = "/privacy/"
   [params.cdn]
     data = ""
 
