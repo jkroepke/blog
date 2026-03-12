@@ -1,12 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>jkroepke/renovate-config:github-action"],
-  "packageRules": [
+  "customManagers": [
     {
-      "matchManagers": [
-        "gomod"
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/go.mod$/"
       ],
-      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-0\\.(?<compatibility>\\d+)-(?<digest>[a-z0-9]+)$"
+      "matchStrings": [
+        "^require (?<depName>\\S+) v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-0\\.(?<compatibility>\\d+)-(?<digest>[a-z0-9]+)(?: \\/\\/ indirect)?$"
+      ],
+      "currentValueTemplate": "HEAD",
+      "datasourceTemplate": "git-refs",
+      "versioningTemplate": "semver"
     }
   ]
 }
