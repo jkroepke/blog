@@ -8,9 +8,8 @@
         "/go.mod$/"
       ],
       "matchStrings": [
-        "require (?<depName>\\S+) v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-0\\.(?<compatibility>\\d+)-(?<digest>[a-z0-9]+)(?: \\/\\/ indirect)?"
+        "require (?<depName>\\S+) v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-0\\.(?<compatibility>\\d+)-(?<currentValue>[a-z0-9]+)(?: \\/\\/ indirect)?"
       ],
-      "currentValueTemplate": "HEAD",
       "datasourceTemplate": "git-refs",
       "versioningTemplate": "semver"
     }
