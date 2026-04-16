@@ -58,7 +58,7 @@ jobs:
       
       - name: Cache Restore
         id: cache-restore
-        uses: actions/cache/restore@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache/restore@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ${{ runner.temp }}/hugo_cache
@@ -83,7 +83,7 @@ jobs:
       - name: Cache Save
         if: github.ref_name == 'main'
         id: cache-save
-        uses: actions/cache/save@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5.0.4
+        uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: |
             ${{ runner.temp }}/hugo_cache
