@@ -1,6 +1,6 @@
 +++
 date = '2026-07-23T00:00:00+02:00'
-title = 'Kubernetes Image Volumes for Platform-Managed Runtimes'
+title = 'Kubernetes Image Volumes for Platform-Managed Runtimes - Part 1'
 description = 'Kubernetes image volumes make it possible to separate application artifacts from their language runtimes. This brings back a responsibility model that was common before containers: application teams deliver applications, while platform teams maintain and patch the runtime.'
 categories = ['Kubernetes']
 tags = ['Containers', 'Kubernetes', 'Platform Engineering', 'Security']
