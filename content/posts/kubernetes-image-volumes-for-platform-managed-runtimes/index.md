@@ -4,6 +4,7 @@ title = 'Kubernetes Image Volumes for Platform-Managed Runtimes'
 description = 'Kubernetes image volumes make it possible to separate application artifacts from their language runtimes. This brings back a responsibility model that was common before containers: application teams deliver applications, while platform teams maintain and patch the runtime.'
 categories = ['Kubernetes']
 tags = ['Containers', 'Kubernetes', 'Platform Engineering', 'Security']
+featuredImage = 'images/iaas-vs-paas.png'
 +++
 
 Since Kubernetes v1.36, [image volumes](https://kubernetes.io/docs/tasks/configure-pod-container/image-volumes/) are stable. They allow Kubernetes to pull an OCI image or artifact and mount its filesystem into a container. At first glance, this looks like a small storage feature, but it enables a much more interesting concept: **platform-managed runtimes**.
