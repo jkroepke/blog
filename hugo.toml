@@ -3,8 +3,8 @@ baseURL = "https://jkroepke.de/"
 # website title
 title = "Personal Blog | Jan-Otto Kröpke"
 
-# language code ["en", "zh-CN", "fr", "pl", ...]
-languageCode = "en"
+# language locale ["en", "zh-CN", "fr", "pl", ...]
+locale = "en"
 # language name ["English", "简体中文", "Français", "Polski", ...]
 languageName = "English"
 # whether to include Chinese/Japanese/Korean
@@ -28,8 +28,14 @@ enableEmoji = true
     dir = ':cacheDir/images'
 
 [imaging]
-  compression = 'lossless'
-  quality = 75
+  [imaging.jpeg]
+    quality = 75
+  [imaging.webp]
+    compression = 'lossless'
+    quality = 75
+  [imaging.avif]
+    compression = 'lossless'
+    quality = 75
   [imaging.exif]
     disableDate = true
     disableLatLong = true
