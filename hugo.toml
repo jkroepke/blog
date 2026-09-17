@@ -77,6 +77,7 @@ enableEmoji = true
   title = "Joe's Personal Blog"
   description = "Sharing stuff about computers, programming, and life experiences."
   images = ["/avatar.png"]
+  defaultTheme = "dark"
 
   [params.author]
     name = "Jan-Otto Kröpke"
@@ -181,6 +182,10 @@ enableEmoji = true
       link = "/privacy/"
   [params.cdn]
     data = ""
+  [params.compatibility]
+    polyfill = false
+    objectFit = false
+
 
 [markup]
   # Syntax Highlighting (https://gohugo.io/content-management/syntax-highlighting)
@@ -214,6 +219,15 @@ enableEmoji = true
     disable = true
     enableDNT = false
     simple = false
+
+[mediaTypes]
+  [mediaTypes."text/plain"]
+    suffixes = ["md"]
+
+[outputFormats.MarkDown]
+  mediaType = "text/plain"
+  isPlainText = true
+  isHTML = false
 
 [module]
   [[module.imports]]
