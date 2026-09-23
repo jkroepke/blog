@@ -69,19 +69,27 @@ enableEmoji = true
     name = "Categories"
     url = "/categories/"
     title = ""
+  [[menu.main]]
+    weight = 4
+    identifier = "about"
+    name = "About"
+    url = "/about/"
+    title = "About Jan-Otto Kröpke"
 
 [params]
   gitRepo = "https://github.com/jkroepke/blog"
   fingerprint = "sha384"
   dateFormat = "2006-01-02"
   title = "Joe's Personal Blog"
-  description = "Sharing stuff about computers, programming, and life experiences."
+  description = "Technical articles about Kubernetes, cloud-native infrastructure, observability, platform engineering, containers, security, and open source."
   images = ["/avatar.png"]
 
   [params.author]
     name = "Jan-Otto Kröpke"
     email = "mail@jkroepke.de"
-    link = "https://linkedin.com/in/jkroepke/"
+    link = "/about/"
+    jobTitle = "Principal Cloud Architect"
+    sameAs = ["https://github.com/jkroepke", "https://www.linkedin.com/in/jkroepke/"]
 
   [params.header]
     [params.header.title]
@@ -118,7 +126,7 @@ enableEmoji = true
       subtitle = "Principal Cloud Architect"
       typeit = false
       social = true
-      disclaimer = "Welcome to my personal blog! Here I share my thoughts, experiences, and insights on various topics related to technology, programming, and life."
+      disclaimer = "I write about Kubernetes, cloud-native infrastructure, observability, platform engineering, containers, security, and open source."
     [params.home.posts]
       enable = true
       paginate = 6

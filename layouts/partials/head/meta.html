@@ -5,6 +5,28 @@
 {{- template "_internal/opengraph.html" . -}}
 {{- template "_internal/twitter_cards.html" . -}}
 
+
+{{- $author := .Site.Params.author -}}
+{{- with $author.name -}}
+    {{- $person := dict
+        "@context" "https://schema.org"
+        "@type" "Person"
+        "@id" ("/about/#person" | absURL)
+        "name" .
+    -}}
+    {{- with $author.link -}}
+        {{- $person = merge $person (dict "url" (. | absURL)) -}}
+        <link rel="author" href="{{ . | absURL }}">
+    {{- end -}}
+    {{- with $author.jobTitle -}}
+        {{- $person = merge $person (dict "jobTitle" .) -}}
+    {{- end -}}
+    {{- with $author.sameAs -}}
+        {{- $person = merge $person (dict "sameAs" .) -}}
+    {{- end -}}
+    <script type="application/ld+json">{{ $person | jsonify | safeJS }}</script>
+{{- end -}}
+
 <meta name="application-name" content="{{ .Site.Params.app.title | default .Site.Title }}">
 <meta name="apple-mobile-web-app-title" content="{{ .Site.Params.app.title | default .Site.Title }}">
 
