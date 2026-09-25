@@ -6,98 +6,127 @@ categories = ['Containers']
 tags = ['Docker', 'Container Security', 'Distroless', 'Kubernetes', 'Supply Chain']
 +++
 
-After the changes around the Bitnami container catalog, many platform teams started looking for alternatives.
-At the same time, [Docker Hardened Images (DHI)](https://www.docker.com/products/hardened-images/) became very attractive:
-the community catalog is free, published under Apache 2.0, and provides minimal images, SBOMs, provenance, and a very small CVE surface.
+The recent Bitnami changes made one thing very clear: **container image catalogs can become infrastructure dependencies.**
 
-I like this direction, but I think the Bitnami change should teach us something beyond which catalog to use next.
-A hardened image can be a good choice, but the image provider should ideally remain replaceable and should not become part of the application's interface.
+[Docker Hardened Images (DHI)](https://www.docker.com/products/hardened-images/) are an interesting alternative.
+The community catalog is free, published under Apache 2.0, and provides minimal images, SBOMs, provenance, and a very small CVE surface.
 
-## What happened with Bitnami
+There is a lot to like about DHI, but simply moving from Bitnami to another large image catalog would miss the bigger lesson.
+The important question is not only how secure an image is today, but how difficult it becomes to replace the provider later.
 
-In 2025, Bitnami changed how its public container catalog works.
+For me, a hardened image provider should remain an implementation detail.
+If changing the image provider also means changing entrypoints, environment variables, filesystem layouts, or Helm charts, the dependency has already become much larger than the image itself.
+
+## The Bitnami part that matters to me
+
+When Bitnami changed its public container catalog in 2025, the immediate discussion was mostly about where the images went and what would remain available for free.
 Existing versioned images were moved to the
 [Bitnami Legacy repository](https://github.com/bitnami/charts/issues/35164), which receives no further updates or support,
-while the free community catalog was reduced and production users needing continued updates, version history, and support were directed to the commercial Bitnami Secure Images offering.
+while users who wanted continued updates, version history, and commercial support were directed toward Bitnami Secure Images.
 
-The source code for the images and Helm charts remained available under Apache 2.0, so this was not simply a move from open source to closed source.
-The larger operational problem was that many users depended on the built images, their tags, update process, registry, and on behavior that was specific to the Bitnami images.
+The source code for the images and Helm charts remained available under Apache 2.0, which makes the situation more interesting than a simple "open source became closed source" story.
+The problem for many users was somewhere else: they had not only adopted a container image, but also the behavior around that image.
 
-For many applications, replacing a Bitnami image was therefore not just a change like this:
+Bitnami images often came with their own startup scripts, environment variables, directory layouts, initialization logic, and conventions around how the application should be configured.
+The [Bitnami PostgreSQL image](https://github.com/bitnami/containers/blob/main/bitnami/postgresql/README.md), for example, defines variables such as
+`POSTGRESQL_VOLUME_DIR` and `POSTGRESQL_DATA_DIR` and adds initialization behavior around the upstream application.
+
+That is convenient while you are using the image.
+It becomes less convenient on the day you want to stop using it.
+
+Ideally, replacing an image provider should look roughly like this:
 
 ```text
 bitnami/foo -> another-registry/foo
 ```
 
-Bitnami images often provided their own initialization logic, environment variables, filesystem conventions, and startup scripts.
-The [Bitnami PostgreSQL image](https://github.com/bitnami/containers/blob/main/bitnami/postgresql/README.md), for example,
-defines Bitnami-specific variables such as `POSTGRESQL_VOLUME_DIR` and `POSTGRESQL_DATA_DIR` together with additional initialization behavior.
+In practice, it can mean checking volumes, environment variables, probes, security contexts, startup behavior, and sometimes the Helm chart itself.
+At that point, the image provider is part of the application interface, even if nobody explicitly decided to design it that way.
 
-Once a Helm chart or deployment depends on those details, the image is no longer only a packaging choice.
-Changing the image provider can also mean changing configuration, volumes, startup behavior, probes, or other parts of the deployment, which turns a simple image replacement into a migration project.
+This is the part of the Bitnami story I would rather not repeat.
 
-## DHI is not simply "Bitnami again"
+## DHI has a better starting point
 
-Docker Hardened Images should not be treated as the same model.
+Docker Hardened Images are not simply "Bitnami again".
 Docker currently publishes the DHI Community catalog for free under the
 [Apache 2.0 license](https://docs.docker.com/dhi/), and the images are based on open distributions such as Debian and Alpine.
-Commercial offerings add features such as SLA-backed remediation, compliance variants, customization, and extended lifecycle support.
+Commercial offerings add things such as SLA-backed remediation, compliance variants, customization, and extended lifecycle support.
 
-This gives DHI a better starting point for portability, but it does not remove the general dependency question.
-Nobody knows how a vendor's products, hosting, pricing, or distribution strategy will look several years from now, and this applies to Docker just as it applies to any other commercial provider.
+I like that model.
+It makes DHI useful without immediately forcing the deployment itself into a commercial product.
 
-For that reason, my conclusion is not that DHI should be avoided.
-I would use it in a way that keeps the image provider replaceable.
+It also does not mean that I want to forget the dependency question.
+No vendor can promise what its product catalog, registry structure, pricing, or commercial strategy will look like several years from now.
+That is not a criticism of Docker; it is simply something I try to account for when building platform dependencies.
 
-## Ask upstream first
+So I would absolutely use DHI.
+I just want to be able to stop using it without turning that decision into a project.
 
-Before replacing every container image with one from a hardened catalog, I would first ask the software vendor or open source project whether they can provide a minimal or distroless image themselves.
+## Before using another catalog, ask upstream
 
-For many applications, especially statically linked Go applications, this can be relatively simple.
-If the application does not need a shell, package manager, or general-purpose operating system utilities, the upstream project can often provide a small runtime image as part of the normal release process.
+My first choice is actually not DHI.
 
-I prefer this approach because the image remains directly connected to the software project and its release lifecycle.
-There is no additional organization between the project producing the application and the container image that I deploy.
+Before replacing an upstream image with one from a hardened catalog, I would first ask the software vendor or open source project whether it can provide a minimal or distroless image itself.
 
-For example, I opened requests for minimal or distroless images in:
+This is especially interesting for Go applications.
+If the binary is statically linked and the application does not require a shell, package manager, or a collection of helper binaries, there is often not much reason to ship a full Linux userspace around it.
+
+The nice part is that this keeps the image close to the application.
+The same project releases the binary and the container image, and there is one less organization involved in the path from source code to what finally runs in the cluster.
+
+I have started asking upstream projects for exactly this.
+For example:
 
 - [thanos-io/thanos#8961](https://github.com/thanos-io/thanos/issues/8961)
 - [prometheus-operator/prometheus-operator#8748](https://github.com/prometheus-operator/prometheus-operator/issues/8748)
 
-Grafana already shows what this can look like.
-The official Grafana images have
+Grafana is a good example of what I would like to see more often.
+The official Grafana images are available as
 [Alpine, Ubuntu, and Distroless variants](https://github.com/grafana/grafana/blob/main/docs/sources/setup-grafana/configure-docker.md),
-including tags such as:
+including:
 
 ```text
 grafana/grafana:<version>-distroless
 grafana/grafana:<version>-distroless-slim
 ```
 
-In this case, I do not need DHI just to get a distroless Grafana image because the upstream project already provides one.
+If I want to run Grafana with a smaller attack surface, I can stay with the upstream image and still get a distroless variant.
+There is no need to add another catalog only to remove a shell and a package manager.
 
-## When I would use DHI
+I would like more projects to offer this choice directly.
 
-There are still many cases where I would use Docker Hardened Images.
-The important question for me is whether I can replace the image provider later without changing the application configuration.
+## Where DHI fits very well
 
-For a simple application that starts one binary with normal command-line flags, uses the same paths, user model, and ports as upstream,
-and does not depend on provider-specific initialization, a hardened image can be a very good replacement.
+Of course, not every upstream project is going to publish multiple image variants.
+Maintaining them takes CI time, testing, release work, and somebody has to care about it.
+
+This is where DHI becomes very useful.
 
 DHI already contains images for projects such as
 [Thanos](https://hub.docker.com/hardened-images/catalog/dhi/thanos),
 [Prometheus](https://hub.docker.com/hardened-images/catalog/dhi/prometheus), and
 [Kafka](https://hub.docker.com/hardened-images/catalog/dhi/kafka).
 
-Compatibility still needs to be checked per application.
-A statically linked Go application with a simple entrypoint is usually easier to exchange than a database or JVM application that depends on startup scripts,
-initialization steps, or a specific filesystem layout.
+For me, the deciding factor is compatibility rather than the logo on the registry.
+If the hardened image starts the same application, accepts the same arguments, uses compatible paths and users, and does not introduce its own configuration layer, then replacing the upstream image can be a very reasonable choice.
 
-## Keep the upstream Helm chart
+A lot of Go applications are almost boring in this regard, which is exactly what I want.
+There is a binary, a few flags, maybe a config file, and not much magic around it.
 
-For Kubernetes, my preferred pattern is to keep the Helm chart from the software project or a community I already trust and only override the image when the chart supports it.
+Other applications are more complicated.
+Databases, JVM applications, or software that expects startup scripts and a particular filesystem layout can make an image swap much more involved.
+Kafka may be available in several catalogs, for example, but I would still check exactly how each image is started and configured before assuming that the images are interchangeable.
 
-Conceptually, this can look like:
+The boring case is the good case here.
+
+## I would keep the upstream Helm chart
+
+For Kubernetes, I would take the same approach one level higher.
+
+If the upstream project already provides a Helm chart that I trust, I would prefer to keep that chart and only change the image reference.
+I do not see much benefit in replacing both the chart and the image provider at the same time unless the alternative chart provides something I actually need.
+
+Conceptually, the change should be as unexciting as:
 
 ```yaml
 image:
@@ -105,10 +134,11 @@ image:
   tag: "0.42.4"
 ```
 
-The exact values depend on the chart, but the separation is more important than the YAML.
-The Helm chart still describes how the application runs, while the hardened image provider is responsible for packaging the application.
+The exact values differ between charts, but the architecture is what matters.
+The chart still comes from the upstream project and describes how the application is configured.
+The hardened catalog is responsible for the image.
 
-If I later decide to move back to the upstream image, the change should ideally be close to:
+If I later decide to move back to the upstream image, I want the reverse change to be equally boring:
 
 ```yaml
 image:
@@ -116,14 +146,17 @@ image:
   tag: "v0.42.4"
 ```
 
-and not require a redesign of volumes, environment variables, probes, security contexts, or initialization logic.
+If that change suddenly requires different environment variables, another directory layout, rewritten probes, or a new chart, then the image was never really a drop-in replacement.
 
-I would also avoid switching to a catalog-specific Helm chart only because it bundles the hardened image.
-If the existing upstream chart can consume another compatible image, keeping the chart and image provider separate makes a future migration much easier.
+This separation also has a nice side effect for platform teams.
+The application team can continue following upstream documentation and chart releases, while the platform can decide which compatible image source is acceptable for the environment.
 
-## What I would test before switching an image
+That is a dependency I can live with.
 
-An image override looks simple, but before using it in production I would verify at least the following points:
+## My portability test
+
+Before replacing an image in production, I would check the boring details first.
+These are usually the details that decide whether the migration is easy later:
 
 - Does the image use the same entrypoint and command-line arguments?
 - Does it use the same UID/GID, or does the Pod security context need changes?
@@ -134,22 +167,27 @@ An image override looks simple, but before using it in production I would verify
 - Does the image expose the same ports?
 - Can I switch back to the upstream image by changing only the repository and tag?
 
-The last question is my portability test.
-If switching back only requires an image reference change, I am comfortable using a hardened catalog.
-If it requires changes throughout the deployment, I want to understand that dependency before rolling it out across the platform.
+The last question is the one I care about most.
 
-## My rule of thumb
+If the answer is yes, then I am quite happy to use a hardened catalog.
+If the answer is no, I want to understand why before rolling it out across dozens or hundreds of workloads.
 
-My current strategy is:
+A small amount of friction can be perfectly acceptable.
+A second application interface hidden inside the container image is something I would rather avoid.
 
-1. **Prefer an upstream minimal or distroless image when it exists.**
-2. **If it does not exist, ask upstream whether they can provide one.**
-3. **Use DHI or another hardened catalog when the application interface stays compatible.**
+## My current approach
+
+For now, my strategy is fairly simple:
+
+1. **Use the upstream minimal or distroless image when one exists.**
+2. **If it does not exist, ask upstream whether providing one would make sense.**
+3. **Use DHI or another hardened catalog when the application interface remains compatible.**
 4. **Keep the upstream or trusted community Helm chart whenever possible.**
-5. **Avoid catalog-specific entrypoints, environment variables, and filesystem layouts unless they provide a feature you actually need.**
-6. **Make sure switching the image provider remains an image change rather than an application migration.**
+5. **Avoid catalog-specific entrypoints, environment variables, and filesystem layouts unless they solve a problem I actually have.**
+6. **Try to make switching the image provider an image change, not an application migration.**
 
-Docker Hardened Images are a useful option, and making the community catalog free and open under Apache 2.0 is a positive move.
-For me, the important lesson from Bitnami is not to avoid third-party images, but to make sure that a third-party image catalog does not become part of the application's API.
+Docker making the DHI Community catalog free and publishing it under Apache 2.0 is a positive development, and I expect it will make hardened images much easier to adopt.
 
-The image provider should be a replaceable implementation detail.
+I just do not want "this catalog is free today" to become part of the architecture.
+
+The architecture I want is much simpler: the application belongs to the upstream project, the Helm chart describes the application, and the image provider can be replaced when needed.
