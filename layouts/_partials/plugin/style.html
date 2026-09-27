@@ -22,7 +22,7 @@
         {{- end -}}
         {{- if eq .Source "css/style.scss" -}}
             {{- /* LoveIt defines the local Emoji font face without font-display. Patch the compiled rule without vendoring the complete theme variables file. */ -}}
-            {{- $content := replaceRE `(@font-face\\{font-family:Emoji;[^}]*)(\\})` "$1;font-display:swap;$2" $resource.Content -}}
+            {{- $content := replaceRE `(@font-face\{font-family:Emoji;[^}]*)(\})` "$1;font-display:swap;$2" $resource.Content -}}
             {{- $resource = resources.FromString "css/style.patched.css" $content -}}
         {{- end -}}
         {{- if .Minify -}}
