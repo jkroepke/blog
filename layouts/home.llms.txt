@@ -17,9 +17,10 @@ This file provides a concise, LLM-friendly index of the published content on {{ 
 
 {{- $posts := where .Site.RegularPages "Section" "posts" }}
 {{- range $posts.ByDate.Reverse }}
-{{- $markdown := .OutputFormats.Get "markdown" }}
+{{- $post := . }}
+{{- $markdown := $post.OutputFormats.Get "markdown" }}
 {{- with $markdown }}
-- [{{ $.Title }}]({{ .Permalink }}): Published {{ $.Date.Format "2006-01-02" }}{{ with $.Description }} — {{ . }}{{ end }}
+- [{{ $post.Title }}]({{ .Permalink }}): Published {{ $post.Date.Format "2006-01-02" }}{{ with $post.Description }} — {{ . }}{{ end }}
 {{- end }}
 {{- end }}
 
