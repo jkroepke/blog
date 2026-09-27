@@ -14,3 +14,7 @@ hugo.linux
 /.hugo_build.lock
 
 /.idea/
+
+# Frontend dependencies and generated LoveIt asset overrides
+/node_modules/
+/assets/lib/
