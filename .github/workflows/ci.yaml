@@ -132,6 +132,9 @@ jobs:
           VALIDATE_MARKDOWN: true
           VALIDATE_RENOVATE: true
           VALIDATE_SHELL_SHFMT: true
+          # Hugo layout templates contain Go template syntax and are not standalone HTML documents.
+          FILTER_REGEX_EXCLUDE: ^layouts/.*\\.html$
+          STRIP_DEFAULT_WORKSPACE_FOR_REGEX: true
   deploy:
     if: github.repository_owner == 'jkroepke' && github.ref_name == 'main'
     name: Deploy
