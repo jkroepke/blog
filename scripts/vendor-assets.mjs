@@ -25,17 +25,17 @@ const files = [
   ["node_modules/cookieconsent/build/cookieconsent.min.css", "assets/lib/cookieconsent/cookieconsent.min.css"],
   ["node_modules/cookieconsent/build/cookieconsent.min.js", "assets/lib/cookieconsent/cookieconsent.min.js"],
   ["node_modules/lazysizes/lazysizes.min.js", "assets/lib/lazysizes/lazysizes.min.js"],
-  ["node_modules/lightgallery/dist/css/lightgallery-bundle.min.css", "assets/lib/lightgallery/css/lightgallery-bundle.min.css"],
-  ["node_modules/lightgallery/dist/lightgallery.min.js", "assets/lib/lightgallery/lightgallery.min.js"],
-  ["node_modules/lightgallery/dist/plugins/thumbnail/lg-thumbnail.min.js", "assets/lib/lightgallery/plugins/thumbnail/lg-thumbnail.min.js"],
-  ["node_modules/lightgallery/dist/plugins/zoom/lg-zoom.min.js", "assets/lib/lightgallery/plugins/zoom/lg-zoom.min.js"],
+  ["node_modules/lightgallery/css/lightgallery-bundle.min.css", "assets/lib/lightgallery/css/lightgallery-bundle.min.css"],
+  ["node_modules/lightgallery/lightgallery.min.js", "assets/lib/lightgallery/lightgallery.min.js"],
+  ["node_modules/lightgallery/plugins/thumbnail/lg-thumbnail.min.js", "assets/lib/lightgallery/plugins/thumbnail/lg-thumbnail.min.js"],
+  ["node_modules/lightgallery/plugins/zoom/lg-zoom.min.js", "assets/lib/lightgallery/plugins/zoom/lg-zoom.min.js"],
   ["node_modules/lunr/lunr.min.js", "assets/lib/lunr/lunr.min.js"],
   ["node_modules/sharer.js/sharer.min.js", "assets/lib/sharer/sharer.min.js"],
 ];
 
 const directories = [
-  ["node_modules/lightgallery/dist/fonts", "assets/lib/lightgallery/fonts"],
-  ["node_modules/lightgallery/dist/images", "assets/lib/lightgallery/images"],
+  ["node_modules/lightgallery/fonts", "assets/lib/lightgallery/fonts"],
+  ["node_modules/lightgallery/images", "assets/lib/lightgallery/images"],
 ];
 
 for (const directory of ownedDirectories) {
