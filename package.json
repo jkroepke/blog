@@ -1,11 +1,9 @@
 {
   "name": "jkroepke.de",
   "private": true,
-  "type": "module",
   "scripts": {
-    "vendor": "node scripts/vendor-assets.mjs",
-    "build": "npm run vendor && hugo --gc --minify",
-    "dev": "npm run vendor && hugo server -D"
+    "build": "hugo --gc --minify",
+    "dev": "hugo server -D"
   },
   "dependencies": {
     "autocomplete.js": "0.38.1",

@@ -224,5 +224,33 @@ enableEmoji = true
     simple = false
 
 [module]
+  # Defining asset mounts replaces Hugo's default assets mount, so keep it explicitly.
+  [[module.mounts]]
+    source = "assets"
+    target = "assets"
+
+  # Expose npm browser distributions at the paths expected by LoveIt.
+  [[module.mounts]]
+    source = "node_modules/autocomplete.js/dist"
+    target = "assets/lib/autocomplete"
+  [[module.mounts]]
+    source = "node_modules/clipboard/dist"
+    target = "assets/lib/clipboard"
+  [[module.mounts]]
+    source = "node_modules/cookieconsent/build"
+    target = "assets/lib/cookieconsent"
+  [[module.mounts]]
+    source = "node_modules/lazysizes"
+    target = "assets/lib/lazysizes"
+  [[module.mounts]]
+    source = "node_modules/lightgallery"
+    target = "assets/lib/lightgallery"
+  [[module.mounts]]
+    source = "node_modules/lunr"
+    target = "assets/lib/lunr"
+  [[module.mounts]]
+    source = "node_modules/sharer.js"
+    target = "assets/lib/sharer"
+
   [[module.imports]]
     path = "github.com/dillonzq/LoveIt"

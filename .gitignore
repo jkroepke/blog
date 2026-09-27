@@ -15,6 +15,5 @@ hugo.linux
 
 /.idea/
 
-# Frontend dependencies and generated LoveIt asset overrides
+# Frontend dependencies
 /node_modules/
-/assets/lib/
