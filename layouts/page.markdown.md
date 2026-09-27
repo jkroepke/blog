@@ -12,4 +12,4 @@ Published: {{ .Date.Format "2006-01-02" }}
 Last modified: {{ .Lastmod.Format "2006-01-02" }}
 {{- end }}
 
-{{ .RawContent | safeHTML }}
+{{ .RenderShortcodes | safeHTML }}
