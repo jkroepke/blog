@@ -1,3 +1,6 @@
+# $schema: https://www.schemastore.org/actionlint.json
+
 self-hosted-runner:
   labels:
     - ubuntu-26.04
+    - ubuntu-26.04-arm
