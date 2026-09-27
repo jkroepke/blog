@@ -223,6 +223,22 @@ enableEmoji = true
     enableDNT = false
     simple = false
 
+
+# LLM-friendly output formats
+[outputs]
+  home = ["html", "rss", "llms"]
+  page = ["html", "markdown"]
+
+[outputFormats]
+  [outputFormats.markdown]
+    permalinkable = true
+  [outputFormats.llms]
+    baseName = "llms"
+    isPlainText = true
+    mediaType = "text/plain"
+    notAlternative = true
+    root = true
+
 [module]
   # Defining asset mounts replaces Hugo's default assets mount, so keep it explicitly.
   [[module.mounts]]
