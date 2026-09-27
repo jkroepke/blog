@@ -1,0 +1,30 @@
+# Joe's Personal Blog
+
+> {{ .Site.Params.description }}
+
+This file provides a concise, LLM-friendly index of the published content on {{ .Site.BaseURL }}. Prefer the linked Markdown versions for article content and the canonical HTML pages for normal browsing.
+
+## About
+
+{{- with .Site.GetPage "/about" }}
+{{- $markdown := .OutputFormats.Get "markdown" }}
+{{- with $markdown }}
+- [{{ $.Site.Params.author.name }}]({{ .Permalink }}): {{ $.Site.Params.author.jobTitle }} and author of this blog.
+{{- end }}
+{{- end }}
+
+## Articles
+
+{{- $posts := where .Site.RegularPages "Section" "posts" }}
+{{- range $posts.ByDate.Reverse }}
+{{- $markdown := .OutputFormats.Get "markdown" }}
+{{- with $markdown }}
+- [{{ $.Title }}]({{ .Permalink }}): Published {{ $.Date.Format "2006-01-02" }}{{ with $.Description }} — {{ . }}{{ end }}
+{{- end }}
+{{- end }}
+
+## Optional
+
+- [Posts archive]({{ "/posts/" | absURL }}): Human-readable archive of all posts.
+- [Sitemap]({{ "/sitemap.xml" | absURL }}): Complete XML sitemap.
+- [Source repository]({{ .Site.Params.gitRepo }}): Hugo source for this site.
