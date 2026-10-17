@@ -1,7 +1,7 @@
 +++
 date = '2026-09-23T15:30:00+02:00'
-title = 'Docker Hardened Images Are Free. Keep Your Exit Strategy'
-description = 'Docker Hardened Images are free and Apache 2.0, but platform teams should still prefer upstream distroless images and keep hardened image providers replaceable.'
+title = 'Docker Hardened Images Might Be the Next Bitnami'
+description = 'Docker Hardened Images are free and Apache 2.0 today. So was Bitnami. Prefer upstream distroless images and keep any hardened image catalog replaceable.'
 categories = ['Kubernetes']
 tags = ['Docker', 'Container Security', 'Distroless', 'Kubernetes', 'Supply Chain']
 +++
