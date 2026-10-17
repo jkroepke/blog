@@ -11,7 +11,10 @@ The recent Bitnami changes made one thing very clear: **container image catalogs
 [Docker Hardened Images (DHI)](https://www.docker.com/products/hardened-images/) are an interesting alternative.
 The community catalog is free, published under Apache 2.0, and provides minimal images, SBOMs, provenance, and a very small CVE surface.
 
-There is a lot to like about DHI, but simply moving from Bitnami to another large image catalog misses the bigger lesson.
+There is a lot to like about DHI. But before you move everything over, ask yourself one question: **what if DHI is the next Bitnami?**
+
+Bitnami was also free, also open source, and also everywhere, until it was not.
+Simply moving from one large image catalog to the next one misses the lesson.
 The important question is not only how secure an image is today, but how difficult it becomes to replace the provider later.
 
 A hardened image provider must remain an implementation detail.
@@ -45,17 +48,18 @@ At that point, the image provider is part of the application interface, even if 
 
 This is the part of the Bitnami story I do not want to repeat.
 
-## DHI has a better starting point
+## Is DHI the next Bitnami?
 
-Docker Hardened Images are not simply "Bitnami again".
+Maybe. Maybe not. Nobody knows, and that is exactly the point.
+
 Docker currently publishes the DHI Community catalog for free under the
 [Apache 2.0 license](https://docs.docker.com/dhi/), and the images are based on open distributions such as Debian and Alpine.
 Commercial offerings add things such as SLA-backed remediation, compliance variants, customization, and extended lifecycle support.
 
-I like that model.
-It makes DHI useful without immediately forcing the deployment itself into a commercial product.
+I like that model. But look at it again: a free community catalog, an open source license, and a commercial tier next to it.
+That is not very different from where Bitnami was a few years ago.
+The license protected the source code, and the source code is still there. It did not protect the free updates.
 
-It does not answer the dependency question, though.
 No vendor can promise what its product catalog, registry structure, pricing, or commercial strategy will look like several years from now.
 That is not a criticism of Docker; it is simply something you have to account for when building platform dependencies.
 
@@ -159,10 +163,6 @@ image:
   tag: "v0.42.4"
 ```
 
-Even this example is not completely free of friction: the DHI tag has no `v` prefix, the upstream tag does.
-That is a small difference, but it is enough to break Renovate rules, version constraints, or any automation that compares tags.
-Small things like that are exactly what you want to find before the migration, not during it.
-
 If the change suddenly requires different environment variables, another directory layout, rewritten probes, or a new chart, then the image was never really a drop-in replacement.
 
 This separation also has a nice side effect for platform teams.
@@ -183,7 +183,6 @@ These are usually the details that decide whether the migration is easy later:
 - Are startup, shutdown, and signal handling compatible?
 - Does the image expose the same ports?
 - Does the binary report the same version and behave the same as the upstream release build?
-- Does the tag format match, or does your automation need changes?
 - Can you switch back to the upstream image by changing only the repository and tag?
 
 The last question is the one that matters most.
@@ -208,5 +207,6 @@ My strategy is simple:
 Docker making the DHI Community catalog free and publishing it under Apache 2.0 is a positive development, and it will make hardened images much easier to adopt.
 
 But "this catalog is free today" must not become part of the architecture.
+Bitnami was free too. Plan as if DHI could become the next Bitnami, and you will not care much if it does.
 
 The architecture I want is much simpler: the application belongs to the upstream project, the Helm chart describes the application, and the image provider can be replaced when needed.
