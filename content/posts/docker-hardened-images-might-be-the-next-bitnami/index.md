@@ -20,7 +20,7 @@ The important question is not only how secure an image is today, but how difficu
 A hardened image provider must remain an implementation detail.
 If changing the image provider also means changing entrypoints, environment variables, filesystem layouts, or Helm charts, the dependency has already become much larger than the image itself.
 
-## The Bitnami part that matters
+## What happened with Bitnami
 
 When Bitnami changed its public container catalog in 2025, the immediate discussion was mostly about where the images went and what would remain available for free.
 Existing versioned images were moved to the
