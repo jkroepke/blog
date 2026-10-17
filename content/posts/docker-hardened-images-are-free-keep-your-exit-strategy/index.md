@@ -1,5 +1,5 @@
 +++
-date = '2026-09-23T15:30:00+02:00'
+date = '2026-10-18T08:56:00+02:00'
 title = 'Docker Hardened Images Might Be the Next Bitnami'
 description = 'Docker Hardened Images are free and Apache 2.0 today. So was Bitnami. Prefer upstream distroless images and keep any hardened image catalog replaceable.'
 categories = ['Kubernetes']
