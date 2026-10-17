@@ -4,6 +4,7 @@ title = 'Docker Hardened Images Might Be the Next Bitnami'
 description = 'Docker Hardened Images are free and Apache 2.0 today. So was Bitnami. Prefer upstream distroless images and keep any hardened image catalog replaceable.'
 categories = ['Kubernetes']
 tags = ['Docker', 'Container Security', 'Distroless', 'Kubernetes', 'Supply Chain']
+featuredImage = 'images/header.png'
 +++
 
 The recent Bitnami changes made one thing very clear: **container image catalogs can become infrastructure dependencies.**
