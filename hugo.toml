@@ -71,6 +71,12 @@ enableEmoji = true
     title = ""
   [[menu.main]]
     weight = 4
+    identifier = "projects"
+    name = "Projects"
+    url = "/projects/"
+    title = "Open source projects and Helm charts"
+  [[menu.main]]
+    weight = 5
     identifier = "about"
     name = "About"
     url = "/about/"
