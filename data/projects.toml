@@ -53,6 +53,16 @@
   summary = "Lens extension that shows the expiry date of certificates stored in Kubernetes secrets."
   opinion = "Expired certificates are the most boring outage there is."
 
+[[projects]]
+  name = "podman-container-tools-community"
+  repo = "podman-container-tools-community"
+  icon = "fas fa-box-open"
+  role = "Author"
+  language = "Shell"
+  tags = ["Podman", "Buildah", "Skopeo"]
+  summary = "Static binaries, .deb and .rpm packages and container images of Podman, Buildah and Skopeo. Built from unmodified upstream releases, signed with cosign and reproducible."
+  opinion = "Your CI runner should not be stuck on a Podman release from three years ago."
+
 [[charts]]
   org = "prometheus-community"
   repo = "prometheus-community/helm-charts"
