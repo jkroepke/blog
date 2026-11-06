@@ -111,6 +111,19 @@ func main() {
 		"\t\"os/signal\"\n\t\"sync\"\n",
 	)
 
+	// js has no fsnotify. The certificate and CA file watchers retry every
+	// minute and log an error each time. The periodic check before the watch
+	// still reloads the files, so skip the watch quietly.
+	for _, f := range []string{
+		"staging/src/k8s.io/apiserver/pkg/server/dynamiccertificates/dynamic_cafile_content.go",
+		"staging/src/k8s.io/apiserver/pkg/server/dynamiccertificates/dynamic_serving_content.go",
+	} {
+		edit(f,
+			"\tw, err := fsnotify.NewWatcher()\n\tif err != nil {\n\t\treturn fmt.Errorf(\"error creating fsnotify watcher: %v\", err)\n\t}",
+			"\tw, err := fsnotify.NewWatcher()\n\tif err != nil {\n\t\treturn nil // kwasm: no fsnotify in js\n\t}",
+		)
+	}
+
 	// The kwasm main package.
 	if err := os.RemoveAll("cmd/kwasm"); err != nil {
 		fail("%v", err)
