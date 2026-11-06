@@ -69,6 +69,8 @@ export async function startTerminal(el, opts) {
   const instance = await instantiate(unpack(opts.wasmURL, counted, total, opts.workerURL), go.importObject);
   term.writeln("");
   globalThis.kwasmStatus(cached ? "compiled WebAssembly from the browser cache" : "downloaded and compiled WebAssembly");
+  // The "free" command reads the size of the linear memory from here.
+  globalThis.kwasmMemory = instance.exports.mem;
   const exited = (why) => {
     term.writeln(`\r\n\x1b[31mthe control plane exited${why ? `: ${why}` : ""}\x1b[0m`);
     if (crash.length) {

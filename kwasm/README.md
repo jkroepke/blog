@@ -39,6 +39,8 @@ browser tab (single wasm binary)                     docker run kwasm-node
   system, so `kubectl get cm x -o yaml > cm.yaml` works.
   `wget` downloads through the `fetch()` of the browser, so it only works for
   servers that allow CORS, for example `raw.githubusercontent.com`.
+- `free` shows the WebAssembly memory (wasm32 ends at 4 GiB, and the linear
+  memory never shrinks), the Go heap and the number of goroutines.
 - `vi` (`k8s/kwasm/vi.go`) is a small vi for manifests. It runs in raw mode:
   while it runs, the terminal sends every key to it. `kubectl edit` opens it
   in-process, because js/Wasm cannot start an editor process.
