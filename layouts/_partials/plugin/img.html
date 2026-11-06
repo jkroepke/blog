@@ -6,6 +6,7 @@
 {{- $width := .Width -}}
 {{- $height := .Height -}}
 {{- $srcset := "" -}}
+{{- $responsive := false -}}
 {{- $resource := dict "Path" $src "Resources" .Resources | partial "function/resource.html" -}}
 
 {{- if $resource -}}
@@ -43,6 +44,7 @@
         {{- $default := $resource.Resize (printf "%dx webp" $defaultWidth) -}}
         {{- $src = $default.RelPermalink -}}
         {{- $srcset = delimit $srcsetItems ", " -}}
+        {{- $responsive = true -}}
 
         {{- if not $small -}}
             {{- $small = $default.RelPermalink -}}
@@ -75,22 +77,22 @@
 {{- if .Linked -}}
     <a class="lightgallery" href="{{ $large | safeURL }}" title="{{ .Title | default $alt }}" data-thumbnail="{{ $small | safeURL }}"{{ with .Caption }} data-sub-html="<h2>{{ . }}</h2>{{ with $.Title }}<p>{{ . }}</p>{{ end }}"{{ end }}{{ with .Rel }} rel="{{ . }}"{{ end }}>
         <img
-            class="lazyload{{ with .Class }} {{ . }}{{ end }}"
-            src="{{ $loading.RelPermalink }}"
-            data-src="{{ $src | safeURL }}"
-            data-srcset="{{ $srcset | safeHTMLAttr }}"
-            data-sizes="auto"
+            class="{{ if not .Eager }}lazyload{{ end }}{{ with .Class }} {{ . }}{{ end }}"
+            src="{{ if .Eager }}{{ $src | safeURL }}{{ else }}{{ $loading.RelPermalink }}{{ end }}"
+            {{ if .Eager }}loading="eager" fetchpriority="high" decoding="async"{{ else }}data-src="{{ $src | safeURL }}"{{ end }}
+            {{ if .Eager }}srcset{{ else }}data-srcset{{ end }}="{{ $srcset | safeHTMLAttr }}"
+            {{ if not .Eager }}data-sizes="auto"{{ else if $responsive }}sizes="(max-width: 1024px) 100vw, 1024px"{{ end }}
             alt="{{ $alt }}"
             {{- with $width }} width="{{ . }}"{{ end }}
             {{- with $height }} height="{{ . }}"{{ end }} />
     </a>
 {{- else -}}
     <img
-        class="lazyload{{ with .Class }} {{ . }}{{ end }}"
-        src="{{ $loading.RelPermalink }}"
-        data-src="{{ $src | safeURL }}"
-        data-srcset="{{ $srcset | safeHTMLAttr }}"
-        data-sizes="auto"
+        class="{{ if not .Eager }}lazyload{{ end }}{{ with .Class }} {{ . }}{{ end }}"
+        src="{{ if .Eager }}{{ $src | safeURL }}{{ else }}{{ $loading.RelPermalink }}{{ end }}"
+        {{ if .Eager }}loading="eager" fetchpriority="high" decoding="async"{{ else }}data-src="{{ $src | safeURL }}"{{ end }}
+        {{ if .Eager }}srcset{{ else }}data-srcset{{ end }}="{{ $srcset | safeHTMLAttr }}"
+        {{ if not .Eager }}data-sizes="auto"{{ else if $responsive }}sizes="(max-width: 1024px) 100vw, 1024px"{{ end }}
         alt="{{ $alt }}"
         title="{{ .Title | default $alt }}"
         {{- with $width }} width="{{ . }}"{{ end }}

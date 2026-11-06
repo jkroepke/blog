@@ -1,7 +1,7 @@
 {{- $section := .Get "section" | default "projects" -}}
 {{- if eq $section "projects" -}}
 <div class="project-grid">
-  {{- range site.Data.projects.projects }}
+  {{- range hugo.Data.projects.projects }}
   {{- $url := printf "https://github.com/%s" .repo }}
   <article class="project-card">
     <div class="project-card-header">
@@ -31,7 +31,7 @@
 </div>
 {{- else -}}
 <div class="project-grid project-grid-charts">
-  {{- range site.Data.projects.charts }}
+  {{- range hugo.Data.projects.charts }}
   {{- $repoURL := printf "https://github.com/%s" .repo }}
   <article class="project-card">
     <div class="project-card-header">

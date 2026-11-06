@@ -1,6 +1,6 @@
 {{- $section := .Get "section" | default "projects" -}}
 {{- if eq $section "projects" -}}
-{{- range site.Data.projects.projects }}
+{{- range hugo.Data.projects.projects }}
 ### [{{ .name }}](https://github.com/{{ .repo }})
 
 {{ .role }} · {{ .language }} · {{ delimit .tags ", " }}
@@ -11,7 +11,7 @@ Documentation: {{ . }}
 {{ end }}
 {{- end }}
 {{- else -}}
-{{- range site.Data.projects.charts }}
+{{- range hugo.Data.projects.charts }}
 ### [{{ .org }}](https://github.com/{{ .repo }})
 {{ with .role }}
 {{ . }}

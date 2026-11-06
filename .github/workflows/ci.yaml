@@ -24,10 +24,6 @@ jobs:
     permissions:
       contents: read
     env:
-      # renovate: github=sass/dart-sass
-      DART_SASS_VERSION: 1.107.0
-      # renovate: github=gohugoio/hugo
-      HUGO_VERSION: 0.169.0
       HUGO_ENVIRONMENT: production
       TZ: Europe/Berlin
     steps:
@@ -36,29 +32,21 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      
+
+      # kwasm/mise.toml inherits the root mise.toml, so this installs the site
+      # tools (node, hugo, sass) and the kwasm tools (go) in one go.
+      - name: Setup mise
+        uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        with:
+          working_directory: kwasm
+
       - name: Install frontend dependencies
         run: npm install --ignore-scripts --no-audit --no-fund --no-package-lock
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-      
-      - name: Setup Hugo
-        uses: peaceiris/actions-hugo@2752ce1d29631191ea3f27c23495fa06139a5b78 # v3.2.1
-        with:
-          hugo-version: ${{ env.HUGO_VERSION }}
-          extended: true
-      
-      - name: Install Dart Sass
-        run: |
-          wget -O "${RUNNER_TEMP}/dart-sass.tar.gz" "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
-          tar -xf "${RUNNER_TEMP}/dart-sass.tar.gz" --directory "${RUNNER_TEMP}"
-          mv "${RUNNER_TEMP}/dart-sass/" "/usr/local/bin"
-          echo "/usr/local/bin/dart-sass" >> "${GITHUB_PATH}"
-        env:
-          RUNNER_TEMP: ${{ runner.temp }}
-      
+
       - name: Cache Restore
         id: cache-restore
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -80,11 +68,6 @@ jobs:
             static/kwasm/kwasm.wasm.zst
             kwasm/.build/wasm_exec.js
           key: kwasm-${{ hashFiles('kwasm/mise.toml', 'kwasm/k8s/**') }}
-
-      - name: Setup mise
-        uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
-        with:
-          working_directory: kwasm
 
       - name: Build kwasm
         working-directory: kwasm
