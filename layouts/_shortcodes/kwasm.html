@@ -1,18 +1,53 @@
 {{- /* Browser terminal with a Kubernetes control plane compiled to WebAssembly. See kwasm/. */ -}}
 <link rel="stylesheet" href="{{ "kwasm/xterm.css" | relURL }}">
 <style>
-  .kwasm-terminal { height: 70vh; min-height: 420px; padding: 8px; border-radius: 6px; background: #0d1117; overflow: hidden; }
+  .kwasm-wrap { position: relative; }
+  .kwasm-terminal { height: 70vh; min-height: 420px; padding: 8px; border-radius: 6px; background: #0d1117; overflow: hidden; box-sizing: border-box; }
   .kwasm-start { display: block; margin: 1rem auto; padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
+  .kwasm-fullscreen { position: absolute; top: 8px; right: 16px; z-index: 5; padding: .2rem .5rem; font-size: .8rem; color: #c9d1d9; background: #21262d; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; opacity: .7; }
+  .kwasm-fullscreen:hover { opacity: 1; }
+  .kwasm-wrap:fullscreen, .kwasm-wrap.kwasm-fs { position: fixed; inset: 0; z-index: 9999; background: #0d1117; }
+  .kwasm-wrap:fullscreen .kwasm-terminal, .kwasm-wrap.kwasm-fs .kwasm-terminal { height: 100%; min-height: 0; border-radius: 0; }
 </style>
-<div class="kwasm-terminal" id="kwasm" data-wasm="{{ "kwasm/kwasm.wasm.zst" | relURL }}" hidden></div>
+<div class="kwasm-wrap" id="kwasm-wrap" hidden>
+  <div class="kwasm-terminal" id="kwasm" data-wasm="{{ "kwasm/kwasm.wasm.zst" | relURL }}"></div>
+  <button class="kwasm-fullscreen" id="kwasm-fullscreen" type="button" title="Full screen (Esc to leave)">Full screen</button>
+</div>
 <button class="kwasm-start" id="kwasm-start" type="button">Boot the cluster (downloads ~28 MB)</button>
 <script>
-  document.getElementById("kwasm-start").addEventListener("click", (e) => {
-    e.target.remove();
-    document.getElementById("kwasm").hidden = false;
-    const s = document.createElement("script");
-    s.type = "module";
-    s.src = "{{ "kwasm/kwasm.js" | relURL }}";
-    document.body.appendChild(s);
-  });
+  (() => {
+    const wrap = document.getElementById("kwasm-wrap");
+    const btn = document.getElementById("kwasm-fullscreen");
+    // Browsers without element full screen (iPhone Safari) get a fixed overlay instead.
+    const isFull = () => document.fullscreenElement === wrap || wrap.classList.contains("kwasm-fs");
+    const label = () => { btn.textContent = isFull() ? "Exit full screen" : "Full screen"; };
+    btn.addEventListener("click", () => {
+      if (document.fullscreenElement === wrap) document.exitFullscreen();
+      else if (wrap.classList.contains("kwasm-fs")) wrap.classList.remove("kwasm-fs");
+      else if (wrap.requestFullscreen) {
+        const overlay = () => { if (document.fullscreenElement !== wrap) { wrap.classList.add("kwasm-fs"); label(); } };
+        wrap.requestFullscreen().catch(overlay);
+        // Embedded browsers (Electron) may never settle the promise.
+        setTimeout(overlay, 500);
+      }
+      else wrap.classList.add("kwasm-fs");
+      label();
+      wrap.querySelector(".xterm-helper-textarea")?.focus();
+    });
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement === wrap) wrap.classList.remove("kwasm-fs");
+      label();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && wrap.classList.contains("kwasm-fs")) { wrap.classList.remove("kwasm-fs"); label(); }
+    });
+    document.getElementById("kwasm-start").addEventListener("click", (e) => {
+      e.target.remove();
+      wrap.hidden = false;
+      const s = document.createElement("script");
+      s.type = "module";
+      s.src = "{{ "kwasm/kwasm.js" | relURL }}";
+      document.body.appendChild(s);
+    });
+  })();
 </script>
