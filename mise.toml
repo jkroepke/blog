@@ -1,3 +1,6 @@
 [tools]
 node = "26.13.0"
 markdownlint-cli2 = "latest"
+hugo-extended = "0.169.0"
+# Hugo's dartsass transpiler (LoveIt's plugin/style.html) needs the sass binary on PATH
+"aqua:sass/dart-sass" = "1.107.0"
