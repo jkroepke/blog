@@ -45,8 +45,10 @@ browser tab (single wasm binary)                     docker run kwasm-node
   while it runs, the terminal sends every key to it. `kubectl edit` opens it
   in-process, because js/Wasm cannot start an editor process.
 - `join` creates a bootstrap token and a WebRTC offer. Signaling is copy and
-  paste: the offer goes into the `docker run` command, and the answer goes
-  back into the terminal. STUN is used for NAT traversal. The node agent
+  paste: the offer goes into the `docker run` command, and `join` then asks
+  for the answer of the node (`accept <answer>` works later, too). A status
+  line under the terminal shows every node and the state of its WebRTC
+  connection. STUN is used for NAT traversal. The node agent
   also advertises `127.0.0.1` for the `-p 127.0.0.1:<port>:<port>/udp`
   mapping. That way it works on Docker Desktop, where the browser cannot
   reach container IPs.

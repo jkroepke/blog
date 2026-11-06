@@ -114,7 +114,7 @@ export async function startTerminal(el, opts) {
         "",
         "Terminal",
         "  join                     connect a real node via WebRTC (needs docker)",
-        "  accept <answer>          finish a join with the answer of the node",
+        "  accept <answer>          finish a join later (join asks for it)",
         "  logs [n]                 the last n lines of the control plane logs",
         "  clear                    clear the screen",
         ...terminal.filter((n) => !["join", "accept", "logs", "clear"].includes(n)).map((n) => `  ${n}`),
@@ -137,9 +137,38 @@ export async function startTerminal(el, opts) {
     },
     ...(opts.builtins || {}),
   };
+  // ask reads one line from the keyboard while a builtin runs (join waits for
+  // the accept line). Ctrl-C rejects.
+  let reader = null;
+  const ask = (text) => new Promise((resolve, reject) => {
+    reader = { line: "", resolve, reject };
+    term.write(text);
+  });
+  function readerFeed(data) {
+    for (const c of data) {
+      if (!reader) return;
+      if (c === "\r" || c === "\n") {
+        const r = reader;
+        reader = null;
+        term.write("\r\n");
+        r.resolve(r.line);
+      } else if (c === "\x03") {
+        const r = reader;
+        reader = null;
+        term.write("^C\r\n");
+        r.reject(new Error("cancelled"));
+      } else if (c === "\x7f") {
+        if (reader.line) { reader.line = reader.line.slice(0, -1); term.write("\b \b"); }
+      } else if (c >= " ") {
+        reader.line += c;
+        term.write(c);
+      }
+    }
+  }
+
   // Builtins get (args, {write, stdin}) from the shell, plus the terminal.
   const shellBuiltins = Object.fromEntries(Object.entries(builtins).map(
-    ([name, fn]) => [name, (args, ctx) => fn(args, { term, exec, write: ctx.write, stdin: ctx.stdin })]));
+    ([name, fn]) => [name, (args, ctx) => fn(args, { term, exec, ask, write: ctx.write, stdin: ctx.stdin })]));
 
   // exec runs a command line in the shell and resolves to its exit status.
   const exec = (src) => globalThis.kwasm.shell(src, (s) => term.write(s), shellBuiltins);
@@ -192,6 +221,8 @@ export async function startTerminal(el, opts) {
 
   redraw();
   term.onData((data) => {
+    // A builtin that asks for a line (join) gets the keys first.
+    if (reader) return readerFeed(data);
     if (!busy) return feed(data);
     // A full screen program (vi, kubectl edit) gets every key.
     if (globalThis.kwasm.rawMode()) return globalThis.kwasm.input(data);
