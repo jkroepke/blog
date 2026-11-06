@@ -17,3 +17,9 @@ hugo.linux
 
 # Frontend dependencies
 /node_modules/
+
+# kwasm build output (built in CI, see kwasm/mise.toml)
+/static/kwasm/
+/kwasm/.build/
+/kwasm/web/node_modules/
+/kwasm/web/src/wasm_exec.js
