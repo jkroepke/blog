@@ -110,15 +110,22 @@ For preparation, focus on navigating the tools, interpreting the provided data, 
 If you have taken CKA or CKS before, you may remember tasks where a result had to be written into a file below `/opt`.
 In the CKNE beta environment, textual results can also be entered through the browser-based exam interface, which then generates the required file.
 
-## No exam simulator or dedicated training yet
+## Official training available, exam simulator not yet
 
-CKNE is still too new to have the preparation ecosystem around CKA and CKS.
+CKNE is still too new to have the full preparation ecosystem around CKA and CKS.
 Those certifications include access to the **[Killer Shell](https://killer.sh/)** exam simulator for practicing the environment and time pressure.
 Thanks to [Kim Wüstkamp](https://www.linkedin.com/in/kimwuestkamp/) for building it.
 
 Killer Shell currently provides simulators for CKA, CKS, CKAD, CNPE, and LFCS, but there is no CKNE simulator yet.
-I also could not find a dedicated CKNE training course from the Linux Foundation.
-For now, most preparation comes directly from the Kubernetes, Cilium, Istio, and Gateway API documentation.
+
+**Update (November 2026):** When I wrote this post, I could not find a dedicated CKNE training course.
+That has changed: the Linux Foundation now offers [official CKNE training](https://www.awin1.com/cread.php?awinmid=85919&amp;awinaffid=3119227&amp;ued=https%3A%2F%2Ftraining.linuxfoundation.org%2Fcertification%2Fcertified-kubernetes-network-engineer-ckne%2F).
+Thanks to Luisa Dimalanta for pointing this out.
+I have not taken the course myself, but if you prefer a structured path over collecting documentation links on your own, it is the obvious place to start.
+Do not skip the Kubernetes, Cilium, Istio, and Gateway API documentation, though.
+The exam environment points you to exactly these docs, so you should know how to navigate them fast.
+
+_Disclosure: the training link is an affiliate link. If you buy through it, I get a small commission at no extra cost to you._
 
 ## Time was my biggest problem
 
