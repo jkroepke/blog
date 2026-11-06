@@ -37,6 +37,9 @@ browser tab (single wasm binary)                     docker run kwasm-node
   (`grep`, `head`, `wc`, `xargs`, ...) live in `k8s/kwasm/coreutils.go`, and
   `join`, `logs` and `clear` are JavaScript. Files land in the in-memory file
   system, so `kubectl get cm x -o yaml > cm.yaml` works.
+- `vi` (`k8s/kwasm/vi.go`) is a small vi for manifests. It runs in raw mode:
+  while it runs, the terminal sends every key to it. `kubectl edit` opens it
+  in-process, because js/wasm cannot start an editor process.
   `wget` downloads through the `fetch()` of the browser, so it only works for
   servers that allow CORS, for example `raw.githubusercontent.com`.
 - `join` creates a bootstrap token and a WebRTC offer. Signaling is copy and
