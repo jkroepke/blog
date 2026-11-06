@@ -52,15 +52,22 @@ export async function startTerminal(el, opts) {
   globalThis.kwasmStatus = (s) => term.writeln(`${DIM(`[${since()}s]`)} ${s}`);
   const { body, total, cached } = await download(opts.wasmURL);
   let loaded = 0;
-  const bar = (n, t) => {
-    const w = 30, f = t ? Math.min(w, Math.round((n / t) * w)) : 0;
-    return `[${"#".repeat(f)}${" ".repeat(w - f)}] ${(n / 1048576).toFixed(1)}${t ? "/" + (t / 1048576).toFixed(1) : ""} MB`;
+  // The line must fit into one row: once it wraps, \r only returns to the
+  // start of the last row and every update adds a new line.
+  const progress = (n, t) => {
+    const mb = `${(n / 1048576).toFixed(1)}${t ? "/" + (t / 1048576).toFixed(1) : ""} MB`;
+    let what = cached ? "compiling from the browser cache" : "downloading and compiling";
+    const room = () => term.cols - 1 - what.length - mb.length - 4; // spaces and brackets
+    if (room() < 10) what = cached ? "compiling" : "downloading";
+    const w = Math.max(0, Math.min(30, room()));
+    const f = t ? Math.min(w, Math.round((n / t) * w)) : 0;
+    const line = `${DIM(what)} ${w ? `[${"#".repeat(f)}${" ".repeat(w - f)}] ` : ""}${mb}`;
+    return `\r\x1b[K${line}`;
   };
-  const what = cached ? "compiling from the browser cache" : "downloading and compiling";
   const counted = body.pipeThrough(new TransformStream({
     transform(chunk, ctl) {
       loaded += chunk.length;
-      term.write(`\r${DIM(what)} ${bar(loaded, total || opts.wasmSize)}`);
+      term.write(progress(loaded, total || opts.wasmSize));
       ctl.enqueue(chunk);
     },
   }));
