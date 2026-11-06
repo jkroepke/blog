@@ -10,8 +10,6 @@ on:
       - .github/workflows/kwasm-node.yaml
 
   pull_request:
-    branches:
-      - main
     paths:
       - kwasm/node/**
       - kwasm/mise.toml

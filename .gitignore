@@ -19,7 +19,7 @@ hugo.linux
 /node_modules/
 
 # kwasm build output (built in CI, see kwasm/mise.toml)
-/static/kwasm/
+/assets/kwasm/
 /kwasm/.build/
 /kwasm/web/node_modules/
 /kwasm/web/src/wasm_exec.js
