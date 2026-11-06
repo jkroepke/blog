@@ -71,6 +71,27 @@ jobs:
       
       - name: Configure Git
         run: git config core.quotepath false
+
+      - name: Cache kwasm
+        id: cache-kwasm
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            static/kwasm/kwasm.wasm.zst
+            kwasm/.build/wasm_exec.js
+          key: kwasm-${{ hashFiles('kwasm/mise.toml', 'kwasm/k8s/**') }}
+
+      - name: Setup mise
+        uses: jdx/mise-action@f5be966e4a917d54244728e6a5fdcd1d93a35e6c # v5.2.6
+        with:
+          working_directory: kwasm
+
+      - name: Build kwasm
+        working-directory: kwasm
+        run: mise run "${TARGET}"
+        env:
+          # on a cache hit only the (cheap) web part is rebuilt
+          TARGET: ${{ steps.cache-kwasm.outputs.cache-hit == 'true' && 'web' || 'build' }}
       
       - name: Build with Hugo
         run: |

@@ -1,0 +1,18 @@
+{{- /* Browser terminal with a Kubernetes control plane compiled to WebAssembly. See kwasm/. */ -}}
+<link rel="stylesheet" href="{{ "kwasm/xterm.css" | relURL }}">
+<style>
+  .kwasm-terminal { height: 70vh; min-height: 420px; padding: 8px; border-radius: 6px; background: #0d1117; overflow: hidden; }
+  .kwasm-start { display: block; margin: 1rem auto; padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
+</style>
+<div class="kwasm-terminal" id="kwasm" data-wasm="{{ "kwasm/kwasm.wasm.zst" | relURL }}" hidden></div>
+<button class="kwasm-start" id="kwasm-start" type="button">Boot the cluster (downloads ~28 MB)</button>
+<script>
+  document.getElementById("kwasm-start").addEventListener("click", (e) => {
+    e.target.remove();
+    document.getElementById("kwasm").hidden = false;
+    const s = document.createElement("script");
+    s.type = "module";
+    s.src = "{{ "kwasm/kwasm.js" | relURL }}";
+    document.body.appendChild(s);
+  });
+</script>
