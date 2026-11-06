@@ -24,9 +24,17 @@ export async function startTerminal(el, opts) {
 
   const logs = [];
   globalThis.kwasmLogs = logs;
+  // A crash trace is kept apart from the rotating log buffer, which would drop
+  // its beginning while the runtime prints thousands of goroutines.
+  const crash = [];
+  globalThis.kwasmCrash = crash;
   let crashing = false;
   installFS((fd, s) => {
-    if (crashing || /^(panic:|fatal error:)/m.test(s)) { crashing = true; console.error(s); }
+    if (crashing || /^(panic:|fatal error:)/m.test(s)) {
+      crashing = true;
+      console.error(s);
+      if (crash.length < 2000) crash.push(s);
+    }
     // Control plane logs: visible with the "Verbose" level in the DevTools console.
     else console.debug(s.replace(/\n$/, ""));
     logs.push(s);
@@ -64,7 +72,15 @@ export async function startTerminal(el, opts) {
   const go = new globalThis.Go();
   go.env = { HOME: "/root", USER: "root", PATH: "/usr/bin" };
   const { instance } = await WebAssembly.instantiate(bytes, go.importObject);
-  go.run(instance).then(() => term.writeln("\r\n\x1b[31mthe control plane exited\x1b[0m"));
+  const exited = (why) => {
+    term.writeln(`\r\n\x1b[31mthe control plane exited${why ? `: ${why}` : ""}\x1b[0m`);
+    if (crash.length) {
+      // The first lines name the cause and the crashing goroutine.
+      term.writeln(crash.join("").split("\n").slice(0, 30).join("\n"));
+      term.writeln(DIM("The full trace is in kwasmCrash in the DevTools console."));
+    }
+  };
+  go.run(instance).then(() => exited(), (e) => exited(e?.message ?? String(e)));
   await globalThis.kwasm.ready;
   term.writeln("");
   term.writeln(`Try ${"\x1b[1m"}kubectl get nodes${"\x1b[0m"}, ${"\x1b[1m"}kubectl get pods -A | grep dns${"\x1b[0m"} or ${"\x1b[1m"}help${"\x1b[0m"}.`);
