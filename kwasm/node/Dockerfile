@@ -23,17 +23,17 @@ RUN set -eux; \
     mkdir -p usr/local/bin opt/cni/bin; \
     curl -fsSLo usr/local/bin/kubelet "https://dl.k8s.io/release/${KUBERNETES_VERSION}/bin/linux/${TARGETARCH}/kubelet"; \
     curl -fsSL "https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-${TARGETARCH}.tar.gz" \
-      | tar -xz -C usr/local bin/containerd bin/containerd-shim-runc-v2 bin/ctr; \
+      | tar -xz -C usr/local bin/containerd bin/containerd-shim-runc-v2; \
     curl -fsSLo usr/local/bin/runc "https://github.com/opencontainers/runc/releases/download/${RUNC_VERSION}/runc.${TARGETARCH}"; \
     curl -fsSL "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${TARGETARCH}-${CNI_PLUGINS_VERSION}.tgz" \
-      | tar -xz -C opt/cni/bin ./bridge ./host-local ./loopback ./portmap ./ptp; \
+      | tar -xz -C opt/cni/bin ./bridge ./host-local ./loopback ./portmap; \
     curl -fsSL "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${TARGETARCH}.tar.gz" \
       | tar -xz -C usr/local/bin crictl; \
     chmod +x usr/local/bin/*
 
 FROM ${BASE_IMAGE}
 RUN apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates iproute2 iptables conntrack ethtool socat mount util-linux kmod passt \
+ && apt-get install -y --no-install-recommends ca-certificates iproute2 iptables mount util-linux passt \
  && rm -rf /var/lib/apt/lists/*
 COPY --from=download /out/ /
 COPY --from=agent /kwasm-node /usr/local/bin/kwasm-node
