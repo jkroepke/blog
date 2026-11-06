@@ -55,7 +55,9 @@ jobs:
         with:
           context: kwasm/node
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          # zstd layers are about 20 % smaller than gzip and unpack faster.
+          # Docker 23+, containerd 1.5+ and Podman pull them.
+          outputs: type=image,push=${{ github.event_name != 'pull_request' }},compression=zstd,compression-level=19,force-compression=true
           build-args: |
             KUBERNETES_VERSION=${{ steps.version.outputs.kubernetes }}
           tags: |
