@@ -89,7 +89,7 @@ export async function startTerminal(el, opts) {
   go.run(instance).then(() => exited(), (e) => exited(e?.message ?? String(e)));
   await globalThis.kwasm.ready;
   term.writeln("");
-  term.writeln(`Try ${"\x1b[1m"}kubectl get nodes${"\x1b[0m"}, ${"\x1b[1m"}kubectl get pods -A | grep dns${"\x1b[0m"} or ${"\x1b[1m"}help${"\x1b[0m"}.`);
+  term.writeln(`Try ${"\x1b[1m"}k version${"\x1b[0m"}, ${"\x1b[1m"}join${"\x1b[0m"} or ${"\x1b[1m"}help${"\x1b[0m"}.`);
 
   // ---- shell ----
   globalThis.kwasm.resize(term.cols, term.rows);
