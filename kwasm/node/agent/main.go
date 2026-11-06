@@ -335,6 +335,7 @@ func writeFile(path, content string, mode os.FileMode) error {
 }
 
 func runNode(ctx context.Context, tok offerToken) error {
+	prepareUnprivileged()
 	if err := setupCgroups(); err != nil {
 		log.Printf("cgroups: %v", err)
 	}
@@ -384,7 +385,17 @@ failCgroupV1: false
 			return err
 		}
 	}
-	if err := writeFile("/etc/kwasm/containerd.toml", "version = 3\n", 0o644); err != nil {
+	containerdConfig := "version = 3\n"
+	if seccompFiltered() {
+		// Docker's default seccomp profile blocks keyctl and pivot_root:
+		// no session keyring per container, and chroot instead of pivot_root.
+		if err := writeFile(runcNoKeyring, runcNoKeyringScript, 0o755); err != nil {
+			return err
+		}
+		containerdConfig += "[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]\n" +
+			"  BinaryName = '" + runcNoKeyring + "'\n"
+	}
+	if err := writeFile("/etc/kwasm/containerd.toml", containerdConfig, 0o644); err != nil {
 		return err
 	}
 	// The kubelet reads the system UUID from /etc/machine-id.
@@ -470,7 +481,8 @@ var noise = []string{
 	"Error getting the current node from lister",
 	"Error updating node status, will retry",
 	"Failed to get node when trying to set owner ref to the node lease",
-	"/run/flannel/subnet.env", // pods start before flannel is ready on this node
+	"/run/flannel/subnet.env",             // pods start before flannel is ready on this node
+	"Stopped receiving OOM notifications", // /dev/kmsg is /dev/null without --privileged
 }
 
 func isNoise(line string) bool {
@@ -480,6 +492,83 @@ func isNoise(line string) bool {
 		}
 	}
 	return false
+}
+
+// prepareUnprivileged makes a container without --privileged usable for
+// containerd and the kubelet. Docker mounts the cgroup tree and /proc/sys
+// read-only and hides /dev/kmsg there. With --privileged it does nothing.
+func prepareUnprivileged() {
+	for _, p := range []string{"/sys/fs/cgroup", "/proc/sys"} {
+		if err := remountRW(p); err != nil {
+			log.Printf("remount %s read-write: %v", p, err)
+		}
+	}
+	// The kubelet's OOM watcher needs to open /dev/kmsg.
+	if _, err := os.Lstat("/dev/kmsg"); errors.Is(err, os.ErrNotExist) {
+		if err := os.Symlink(kmsgTarget, "/dev/kmsg"); err != nil {
+			log.Printf("/dev/kmsg: %v", err)
+		}
+	}
+}
+
+const kmsgTarget = "/dev/null"
+
+const (
+	runcNoKeyring       = "/usr/local/bin/runc-no-keyring"
+	runcNoKeyringScript = `#!/bin/sh
+# Docker's default seccomp profile blocks keyctl and pivot_root.
+for a do
+	shift
+	set -- "$@" "$a"
+	if [ -z "$done" ] && { [ "$a" = create ] || [ "$a" = run ]; }; then
+		set -- "$@" --no-new-keyring --no-pivot
+		done=1
+	fi
+done
+exec runc "$@"
+`
+)
+
+// seccompFiltered reports whether this process runs under a seccomp filter,
+// as it does in a Docker container without --privileged.
+func seccompFiltered() bool {
+	status, err := os.ReadFile("/proc/self/status")
+	if err != nil {
+		return false
+	}
+	for line := range strings.Lines(string(status)) {
+		if v, ok := strings.CutPrefix(line, "Seccomp:"); ok {
+			return strings.TrimSpace(v) == "2"
+		}
+	}
+	return false
+}
+
+func readOnly(path string) (bool, error) {
+	var st syscall.Statfs_t
+	if err := syscall.Statfs(path, &st); err != nil {
+		return false, err
+	}
+	const stRdonly = 0x1
+	return st.Flags&stRdonly != 0, nil
+}
+
+func remountRW(path string) error {
+	ro, err := readOnly(path)
+	if err != nil || !ro {
+		return err
+	}
+	const keep = syscall.MS_NOSUID | syscall.MS_NODEV | syscall.MS_NOEXEC
+	// /proc/sys is a read-only bind mount, /sys/fs/cgroup a read-only mount.
+	for _, flags := range []uintptr{syscall.MS_REMOUNT | syscall.MS_BIND | keep, syscall.MS_REMOUNT | keep} {
+		if err := syscall.Mount("", path, "", flags, ""); err != nil {
+			return err
+		}
+		if ro, err = readOnly(path); err != nil || !ro {
+			return err
+		}
+	}
+	return errors.New("still read-only")
 }
 
 // setupCgroups moves all processes into a child cgroup so that the kubelet

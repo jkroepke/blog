@@ -80,6 +80,30 @@ zstd. The page fetches the `.zst` file and unpacks it with
 The node image is built by `.github/workflows/kwasm-node.yaml` with the same
 version.
 
+## Node without --privileged
+
+The node container runs a kubelet, containerd and runc, but it does not need
+`--privileged`. These flags are enough:
+
+| Flag | Why |
+| --- | --- |
+| `--cap-add SYS_ADMIN` | mounts for containers, remount `/sys/fs/cgroup` and `/proc/sys` read-write |
+| `--cap-add NET_ADMIN` | addresses on `lo`, bridge, vxlan and iptables for flannel and kube-proxy |
+| `--cap-add SYS_RESOURCE` | runc lowers `oom_score_adj` of the pause and system containers |
+| `--cap-add SYS_PTRACE` | runc reads `/proc/<pid>/ns` of its own init process |
+| `--security-opt apparmor=unconfined` | the `docker-default` AppArmor profile denies `mount` (Linux hosts with AppArmor) |
+
+The agent adapts the container when it is not privileged:
+
+- It remounts `/sys/fs/cgroup` and `/proc/sys` read-write.
+- It links `/dev/kmsg` to `/dev/null`, so the kubelet's OOM watcher starts.
+  OOM kills still show up as `OOMKilled` in the pod status.
+- Docker's default seccomp profile stays active. It blocks `keyctl` and
+  `pivot_root`, so containerd calls runc through a wrapper with
+  `--no-new-keyring --no-pivot`.
+
+`--privileged` still works.
+
 ## Limits
 
 - Wasm runs on one thread. The boot takes about 15 seconds. Everything shares
