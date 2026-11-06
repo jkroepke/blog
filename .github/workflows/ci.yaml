@@ -52,7 +52,12 @@ jobs:
       
       - name: Install Dart Sass
         run: |
-          wget -O "${RUNNER_TEMP}/dart-sass.tar.gz" "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-x64.tar.gz"
+          case "${RUNNER_ARCH}" in
+            ARM64) SASS_ARCH=arm64 ;;
+            X64) SASS_ARCH=x64 ;;
+            *) echo "Unsupported runner architecture: ${RUNNER_ARCH}" >&2; exit 1 ;;
+          esac
+          wget -O "${RUNNER_TEMP}/dart-sass.tar.gz" "https://github.com/sass/dart-sass/releases/download/${DART_SASS_VERSION}/dart-sass-${DART_SASS_VERSION}-linux-${SASS_ARCH}.tar.gz"
           tar -xf "${RUNNER_TEMP}/dart-sass.tar.gz" --directory "${RUNNER_TEMP}"
           mv "${RUNNER_TEMP}/dart-sass/" "/usr/local/bin"
           echo "/usr/local/bin/dart-sass" >> "${GITHUB_PATH}"
