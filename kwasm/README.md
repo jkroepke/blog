@@ -41,7 +41,7 @@ browser tab (single wasm binary)                     docker run kwasm-node
   servers that allow CORS, for example `raw.githubusercontent.com`.
 - `vi` (`k8s/kwasm/vi.go`) is a small vi for manifests. It runs in raw mode:
   while it runs, the terminal sends every key to it. `kubectl edit` opens it
-  in-process, because js/wasm cannot start an editor process.
+  in-process, because js/Wasm cannot start an editor process.
 - `join` creates a bootstrap token and a WebRTC offer. Signaling is copy and
   paste: the offer goes into the `docker run` command, and the answer goes
   back into the terminal. STUN is used for NAT traversal. The node agent
