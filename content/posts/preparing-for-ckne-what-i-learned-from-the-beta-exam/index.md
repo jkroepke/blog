@@ -110,15 +110,17 @@ For preparation, focus on navigating the tools, interpreting the provided data, 
 If you have taken CKA or CKS before, you may remember tasks where a result had to be written into a file below `/opt`.
 In the CKNE beta environment, textual results can also be entered through the browser-based exam interface, which then generates the required file.
 
-## No exam simulator or dedicated training yet
+## No exam simulator yet
 
 CKNE is still too new to have the preparation ecosystem around CKA and CKS.
 Those certifications include access to the **[Killer Shell](https://killer.sh/)** exam simulator for practicing the environment and time pressure.
 Thanks to [Kim Wüstkamp](https://www.linkedin.com/in/kimwuestkamp/) for building it.
 
 Killer Shell currently provides simulators for CKA, CKS, CKAD, CNPE, and LFCS, but there is no CKNE simulator yet.
-I also could not find a dedicated CKNE training course from the Linux Foundation.
-For now, most preparation comes directly from the Kubernetes, Cilium, Istio, and Gateway API documentation.
+The Linux Foundation offers a dedicated [CKNE training course](https://www.awin1.com/cread.php?awinmid=85919&awinaffid=3119227&ued=https%3A%2F%2Ftraining.linuxfoundation.org%2Fcertification%2Fcertified-kubernetes-network-engineer-ckne%2F).
+Beyond that, most preparation comes directly from the Kubernetes, Cilium, Istio, and Gateway API documentation.
+
+_Disclosure: the training link is an affiliate link. If you buy through it, I get a small commission at no extra cost to you._
 
 ## Time was my biggest problem
 
