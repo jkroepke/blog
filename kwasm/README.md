@@ -4,7 +4,7 @@ A real Kubernetes control plane in the browser. kube-apiserver,
 kube-controller-manager, kube-scheduler and kubectl are compiled with
 `GOOS=js GOARCH=wasm` into a single binary. The page at
 [/kubernetes/](https://jkroepke.de/kubernetes/) boots it in a terminal.
-A real node can join with docker. The node talks to the browser over WebRTC.
+A real node can join with Docker. The node talks to the browser over WebRTC.
 
 ## How it works
 
@@ -45,9 +45,9 @@ same on macOS and Linux:
 - Build-tag stubs for unix-only syscalls (journal, flock, termios, mount
   helpers, SO_LINGER, `syscall.Exec` for kubectl plugins, signals).
 - ECDSA instead of RSA for self-signed certificates. RSA key generation takes
-  ages in single-threaded wasm.
+  ages in single-threaded Wasm.
 - A sleep in the APF bootstrap ensurer. It busy-loops until the informer
-  catches up, and wasm has no preemption, so the informer never gets the CPU.
+  catches up, and Wasm has no preemption, so the informer never gets the CPU.
 - An idempotent `SetupSignalContext`, because all components share one process.
 
 Every content patch fails when its target is gone. A Kubernetes update shows
