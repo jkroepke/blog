@@ -24,12 +24,20 @@
     btn.addEventListener("click", () => {
       if (document.fullscreenElement === wrap) document.exitFullscreen();
       else if (wrap.classList.contains("kwasm-fs")) wrap.classList.remove("kwasm-fs");
-      else if (wrap.requestFullscreen) wrap.requestFullscreen().catch(() => wrap.classList.add("kwasm-fs"));
+      else if (wrap.requestFullscreen) {
+        const overlay = () => { if (document.fullscreenElement !== wrap) { wrap.classList.add("kwasm-fs"); label(); } };
+        wrap.requestFullscreen().catch(overlay);
+        // Embedded browsers (Electron) may never settle the promise.
+        setTimeout(overlay, 500);
+      }
       else wrap.classList.add("kwasm-fs");
       label();
       wrap.querySelector(".xterm-helper-textarea")?.focus();
     });
-    document.addEventListener("fullscreenchange", label);
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement === wrap) wrap.classList.remove("kwasm-fs");
+      label();
+    });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && wrap.classList.contains("kwasm-fs")) { wrap.classList.remove("kwasm-fs"); label(); }
     });
