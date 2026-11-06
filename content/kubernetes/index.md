@@ -1,6 +1,8 @@
 +++
 title = "Kubernetes in your browser"
 description = "A real Kubernetes control plane, compiled to WebAssembly: kube-apiserver, kube-controller-manager, kube-scheduler and kubectl run in your browser. Join a real node with Docker and WebRTC."
+# wget in the terminal downloads with fetch(), so this page may connect anywhere.
+cspConnectSrc = ["*"]
 +++
 
 This is a real Kubernetes v1.37 control plane. Not a simulator. kube-apiserver, kube-controller-manager, kube-scheduler and kubectl are the upstream Go code, compiled to WebAssembly into one binary. The only replaced part is etcd: a small in-memory implementation of the etcd v3 API. Everything runs in your browser tab. Reload the page and the cluster is gone.
