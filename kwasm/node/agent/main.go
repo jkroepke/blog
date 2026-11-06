@@ -8,7 +8,9 @@ import (
 	"bytes"
 	"compress/flate"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -375,7 +377,6 @@ evictionHard:
 imageGCHighThresholdPercent: 100
 localStorageCapacityIsolation: false
 failCgroupV1: false
-staticPodPath: /etc/kubernetes/manifests
 `,
 	}
 	for p, c := range files {
@@ -385,6 +386,16 @@ staticPodPath: /etc/kubernetes/manifests
 	}
 	if err := writeFile("/etc/kwasm/containerd.toml", "version = 3\n", 0o644); err != nil {
 		return err
+	}
+	// The kubelet reads the system UUID from /etc/machine-id.
+	if _, err := os.Stat("/etc/machine-id"); err != nil {
+		id := make([]byte, 16)
+		if _, err := rand.Read(id); err != nil {
+			return err
+		}
+		if err := writeFile("/etc/machine-id", hex.EncodeToString(id)+"\n", 0o444); err != nil {
+			return err
+		}
 	}
 	go supervise(ctx, "containerd", "containerd", "--config=/etc/kwasm/containerd.toml")
 	waitForSocket("/run/containerd/containerd.sock", 30*time.Second)
@@ -432,7 +443,7 @@ func supervise(ctx context.Context, name, bin string, args ...string) {
 			if logFile != nil {
 				fmt.Fprintln(logFile, line)
 			}
-			if os.Getenv("KWASM_VERBOSE") != "" || strings.HasPrefix(line, "E") || strings.HasPrefix(line, "F") {
+			if os.Getenv("KWASM_VERBOSE") != "" || (strings.HasPrefix(line, "E") || strings.HasPrefix(line, "F")) && !isNoise(line) {
 				log.Printf("%s: %s", name, line)
 			}
 		}
@@ -446,6 +457,29 @@ func supervise(ctx context.Context, name, bin string, args ...string) {
 		log.Printf("%s exited (%v), restarting", name, err)
 		time.Sleep(2 * time.Second)
 	}
+}
+
+// noise are kubelet errors that are expected in a container or during the
+// first seconds of a node. They stay in /var/log/kubelet.log.
+var noise = []string{
+	"cannot find filesystem info for device", // cadvisor cannot map the container's overlay to a disk
+	"HasDedicatedImageFs",                    // same, from the eviction manager
+	"checkpoint is not found",                // first start
+	"PLEG is not healthy: pleg has yet to be successful",
+	"not found\" node=", // node not registered yet
+	"Error getting the current node from lister",
+	"Error updating node status, will retry",
+	"Failed to get node when trying to set owner ref to the node lease",
+	"/run/flannel/subnet.env", // pods start before flannel is ready on this node
+}
+
+func isNoise(line string) bool {
+	for _, n := range noise {
+		if strings.Contains(line, n) {
+			return true
+		}
+	}
+	return false
 }
 
 // setupCgroups moves all processes into a child cgroup so that the kubelet
