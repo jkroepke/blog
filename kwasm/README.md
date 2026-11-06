@@ -73,7 +73,7 @@ The tasks live in `kwasm/mise.toml`. mise installs Go and Node.js.
 
 ```bash
 cd kwasm
-mise run build       # static/kwasm/{kwasm.wasm.zst,kwasm.js,xterm.css}
+mise run build       # assets/kwasm/{kwasm.wasm.zst,kwasm.js,unzstd.js,xterm.css}
 mise run node-image  # ghcr.io/jkroepke/kwasm-node:<version> for the local platform
 cd .. && hugo server # http://localhost:1313/kubernetes/
 ```
@@ -81,7 +81,14 @@ cd .. && hugo server # http://localhost:1313/kubernetes/
 The binary is around 290 MB, or 28 MB with zstd (gzip: 45 MB). GitHub Pages
 does not send `Content-Encoding` for it, and `DecompressionStream` has no
 zstd. The page fetches the `.zst` file and unpacks it with
-[fzstd](https://github.com/101arrowz/fzstd) in about 1.5 seconds.
+[fzstd](https://github.com/101arrowz/fzstd) in a Web Worker, block by block
+while it downloads. The browser compiles the WebAssembly while the bytes
+arrive, so download, unpacking and compiling overlap.
+
+Hugo fingerprints the files in `assets/kwasm/`, so the name of the binary
+changes with its content. The page keeps the binary in the Cache Storage of
+the browser and the next visit downloads nothing. GitHub Pages itself sends
+only `max-age=600`.
 
 ## Update Kubernetes
 
