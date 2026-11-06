@@ -8,7 +8,7 @@ $project-muted: #6b6b75;
 .project-grid {
   display: grid;
   // Two columns only when the content column is wide enough.
-  grid-template-columns: repeat(auto-fit, minmax(#{unquote("min(100%, 20rem)")}, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
   gap: 1rem;
   margin: 1rem 0 2rem;
 }
