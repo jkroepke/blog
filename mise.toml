@@ -7,7 +7,7 @@ hugo-extended = "0.169.0"
 # The aqua registry entry picks the musl Linux build, which does not run on glibc
 # (e.g. the Ubuntu CI runners), so pin the glibc assets on Linux explicitly.
 [tools."github:sass/dart-sass"]
-version = "1.107.0"
+version = "1.107.1"
 
 [tools."github:sass/dart-sass".platforms]
 linux-x64 = { asset_pattern = "dart-sass-*-linux-x64.tar.gz" }
