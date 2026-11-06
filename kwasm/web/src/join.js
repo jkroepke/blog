@@ -38,8 +38,10 @@ export function joinBuiltins({ image, stun = "stun:stun.l.google.com:19302" }) {
   return {
     async join(args, { term }) {
       if (pending) {
-        term.writeln(`There is already a pending join for ${pending.info.name}. Run ${B("accept <answer>")} first.`);
-        return;
+        // The node never answered (docker run failed, accept line lost): start over.
+        term.writeln(DIM(`dropping the pending join for ${pending.info.name}`));
+        pending.pc.close();
+        pending = null;
       }
       const pc = new RTCPeerConnection({ iceServers: stun ? [{ urls: stun }] : [] });
       pc.createDataChannel("ctl");
@@ -60,6 +62,8 @@ export function joinBuiltins({ image, stun = "stun:stun.l.google.com:19302" }) {
       pc.onconnectionstatechange = () => {
         const s = pc.connectionState;
         term.writeln(`\r\n${DIM(`[webrtc]`)} ${info.name}: ${s}`);
+        // A failed connection never recovers: free it and its data channels.
+        if (s === "failed") pc.close();
       };
       pending = { pc, info };
       globalThis.kwasmLastJoin = { token, port, name: info.name };
