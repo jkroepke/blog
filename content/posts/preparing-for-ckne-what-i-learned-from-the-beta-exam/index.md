@@ -117,8 +117,8 @@ Those certifications include access to the **[Killer Shell](https://killer.sh/)*
 Thanks to [Kim Wüstkamp](https://www.linkedin.com/in/kimwuestkamp/) for building it.
 
 Killer Shell currently provides simulators for CKA, CKS, CKAD, CNPE, and LFCS, but there is no CKNE simulator yet.
-The Linux Foundation now offers a dedicated [CKNE training course](https://www.awin1.com/cread.php?awinmid=85919&awinaffid=3119227&ued=https%3A%2F%2Ftraining.linuxfoundation.org%2Fcertification%2Fcertified-kubernetes-network-engineer-ckne%2F).
-Beyond that, most preparation still comes directly from the Kubernetes, Cilium, Istio, and Gateway API documentation.
+The Linux Foundation offers a dedicated [CKNE training course](https://www.awin1.com/cread.php?awinmid=85919&awinaffid=3119227&ued=https%3A%2F%2Ftraining.linuxfoundation.org%2Fcertification%2Fcertified-kubernetes-network-engineer-ckne%2F).
+Beyond that, most preparation comes directly from the Kubernetes, Cilium, Istio, and Gateway API documentation.
 
 _Disclosure: the training link is an affiliate link. If you buy through it, I get a small commission at no extra cost to you._
 
