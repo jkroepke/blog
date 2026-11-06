@@ -69,8 +69,9 @@ export function joinBuiltins({ image, stun = "stun:stun.l.google.com:19302", sta
   // finish hands the answer of the node to the pending connection.
   const finish = async (answer, term) => {
     let ans;
-    try { ans = await decodeToken(answer.trim().replace(/^accept\s+/, "")); } catch (e) {
-      term.writeln(`invalid answer: ${e.message}`);
+    try { ans = await decodeToken(answer.trim().replace(/^accept\s+/, "")); } catch { ans = null; }
+    if (typeof ans?.sdp !== "string") {
+      term.writeln(`That is not the ${B("accept ...")} line of the node.`);
       return false;
     }
     await pending.pc.setRemoteDescription({ type: "answer", sdp: ans.sdp });
@@ -81,7 +82,7 @@ export function joinBuiltins({ image, stun = "stun:stun.l.google.com:19302", sta
   };
 
   return {
-    async join(args, { term, ask }) {
+    async join(args, { term, ask, active }) {
       if (pending) {
         // The node never answered (docker run failed, accept line lost): start over.
         term.writeln(DIM(`dropping the pending join for ${pending.info.name}`));
@@ -102,6 +103,7 @@ export function joinBuiltins({ image, stun = "stun:stun.l.google.com:19302", sta
       const info = await globalThis.kwasm.prepareJoin(open);
       await pc.setLocalDescription(await pc.createOffer());
       await gatheringComplete(pc, 3000);
+      if (!active()) { pc.close(); return; } // Ctrl-C while preparing
       const port = 50000 + ++seq;
       const token = await encodeToken({
         v: 1, n: info.name, ip: info.ip, t: info.token, ca: info.ca, sdp: pc.localDescription.sdp, p: port,

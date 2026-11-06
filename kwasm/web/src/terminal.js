@@ -167,8 +167,15 @@ export async function startTerminal(el, opts) {
   }
 
   // Builtins get (args, {write, stdin}) from the shell, plus the terminal.
-  const shellBuiltins = Object.fromEntries(Object.entries(builtins).map(
-    ([name, fn]) => [name, (args, ctx) => fn(args, { term, exec, ask, write: ctx.write, stdin: ctx.stdin })]));
+  // Ctrl-C ends the command line, but a JS builtin runs on: active() tells it
+  // whether it still belongs to the running command line, and ask() rejects
+  // when it does not, so a canceled join cannot take the keys later.
+  let run = 0;
+  const shellBuiltins = Object.fromEntries(Object.entries(builtins).map(([name, fn]) => [name, (args, ctx) => {
+    const id = run, active = () => busy && id === run;
+    const askActive = (text) => (active() ? ask(text) : Promise.reject(new Error("cancelled")));
+    return fn(args, { term, exec, ask: askActive, active, write: ctx.write, stdin: ctx.stdin });
+  }]));
 
   // exec runs a command line in the shell and resolves to its exit status.
   const exec = (src) => globalThis.kwasm.shell(src, (s) => term.write(s), shellBuiltins);
@@ -209,6 +216,7 @@ export async function startTerminal(el, opts) {
     pending = "";
     if (src.trim()) {
       busy = true;
+      run++;
       try { await exec(src); } catch (e) { term.writeln(`kwasm: ${e.message}`); }
       busy = false;
       // Output without a final newline: start the prompt on a new line.
@@ -227,6 +235,7 @@ export async function startTerminal(el, opts) {
     // A full screen program (vi, kubectl edit) gets every key.
     if (globalThis.kwasm.rawMode()) return globalThis.kwasm.input(data);
     if (data === "\x03") {
+      run++;
       globalThis.kwasm.cancel();
       term.write("^C\r\n");
     }
