@@ -5,16 +5,17 @@ on:
     branches:
       - main
 
+  # All pull requests, also the ones stacked on another pull request branch.
   pull_request:
-    branches:
-      - main
 
   workflow_dispatch:
 
 permissions: {}
 
+# One run per branch at a time, so pull requests do not queue behind each
+# other or behind the Pages deployment of main.
 concurrency:
-  group: "pages"
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -76,6 +77,15 @@ jobs:
           # on a cache hit only the (cheap) web part is rebuilt
           TARGET: ${{ steps.cache-kwasm.outputs.cache-hit == 'true' && 'web' || 'build' }}
       
+      # go mod tidy (e.g. from Renovate) drops the theme because no Go code
+      # imports it. Hugo then silently falls back to an old LoveIt release.
+      - name: Check Hugo module requirement
+        run: |
+          if ! grep -q '^require github.com/dillonzq/LoveIt ' go.mod; then
+            echo "::error file=go.mod::the LoveIt requirement is missing, go mod tidy removed it"
+            exit 1
+          fi
+
       - name: Build with Hugo
         run: |
           hugo \
