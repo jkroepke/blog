@@ -76,6 +76,10 @@ func decode(s string, v any) error {
 }
 
 func main() {
+	if filepath.Base(os.Args[0]) == filepath.Base(runcWrapper) {
+		runRuncWrapper(os.Args[1:])
+		return
+	}
 	stun := flag.String("stun", "stun:stun.l.google.com:19302", "STUN server, empty to disable")
 	noKubelet := flag.Bool("no-kubelet", false, "only run the tunnel (for testing)")
 	advertise := flag.String("advertise", "127.0.0.1", "extra host ICE candidate addresses, comma separated (for docker -p port mappings), empty to disable")
@@ -98,6 +102,14 @@ func main() {
 	}
 	if tok.V != 1 {
 		log.Fatalf("unsupported token version %d", tok.V)
+	}
+
+	if inUserNS {
+		if err := setupUserNS(); err != nil {
+			log.Fatal(err)
+		}
+	} else if !*noKubelet && !hasCapSysAdmin() {
+		os.Exit(runInUserNS(tok.Port))
 	}
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -380,20 +392,25 @@ localStorageCapacityIsolation: false
 failCgroupV1: false
 `,
 	}
+	if inUserNS {
+		files["/var/lib/kubelet/config.yaml"] += "featureGates:\n  KubeletInUserNamespace: true\n"
+	}
 	for p, c := range files {
 		if err := writeFile(p, c, 0o600); err != nil {
 			return err
 		}
 	}
 	containerdConfig := "version = 3\n"
-	if seccompFiltered() {
-		// Docker's default seccomp profile blocks keyctl and pivot_root:
-		// no session keyring per container, and chroot instead of pivot_root.
-		if err := writeFile(runcNoKeyring, runcNoKeyringScript, 0o755); err != nil {
-			return err
-		}
+	if inUserNS {
+		// No AppArmor and no lower oom_score_adj than our own in a user namespace.
+		containerdConfig += "[plugins.'io.containerd.cri.v1.runtime']\n" +
+			"  disable_apparmor = true\n" +
+			"  restrict_oom_score_adj = true\n"
+	}
+	if inUserNS || seccompFiltered() {
+		// containerd calls runc through the agent, see runc.go.
 		containerdConfig += "[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]\n" +
-			"  BinaryName = '" + runcNoKeyring + "'\n"
+			"  BinaryName = '" + runcWrapper + "'\n"
 	}
 	if err := writeFile("/etc/kwasm/containerd.toml", containerdConfig, 0o644); err != nil {
 		return err
@@ -512,22 +529,6 @@ func prepareUnprivileged() {
 }
 
 const kmsgTarget = "/dev/null"
-
-const (
-	runcNoKeyring       = "/usr/local/bin/runc-no-keyring"
-	runcNoKeyringScript = `#!/bin/sh
-# Docker's default seccomp profile blocks keyctl and pivot_root.
-for a do
-	shift
-	set -- "$@" "$a"
-	if [ -z "$done" ] && { [ "$a" = create ] || [ "$a" = run ]; }; then
-		set -- "$@" --no-new-keyring --no-pivot
-		done=1
-	fi
-done
-exec runc "$@"
-`
-)
 
 // seccompFiltered reports whether this process runs under a seccomp filter,
 // as it does in a Docker container without --privileged.

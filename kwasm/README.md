@@ -82,27 +82,44 @@ version.
 
 ## Node without --privileged
 
-The node container runs a kubelet, containerd and runc, but it does not need
-`--privileged`. These flags are enough:
+The node container runs a kubelet, containerd and runc, but it needs neither
+`--privileged` nor extra capabilities. The printed `docker run` uses:
 
 | Flag | Why |
 | --- | --- |
-| `--cap-add SYS_ADMIN` | mounts for containers, remount `/sys/fs/cgroup` and `/proc/sys` read-write |
-| `--cap-add NET_ADMIN` | addresses on `lo`, bridge, vxlan and iptables for flannel and kube-proxy |
-| `--cap-add SYS_RESOURCE` | runc lowers `oom_score_adj` of the pause and system containers |
-| `--cap-add SYS_PTRACE` | runc reads `/proc/<pid>/ns` of its own init process |
-| `--security-opt apparmor=unconfined` | the `docker-default` AppArmor profile denies `mount` (Linux hosts with AppArmor) |
+| `--security-opt seccomp=unconfined` | Docker's profile allows a new user namespace only with `CAP_SYS_ADMIN` |
+| `--security-opt systempaths=unconfined` | the kernel refuses a new `sysfs` and `cgroup2` mount while Docker masks parts of `/proc` and `/sys` |
+| `--device /dev/net/tun` | pasta connects the node's network namespace through a tap device |
+| `--security-opt apparmor=unconfined` | the `docker-default` AppArmor profile denies `mount` (Linux hosts with AppArmor, untested) |
 
-The agent adapts the container when it is not privileged:
+Without `CAP_SYS_ADMIN`, the agent starts itself again in new user, mount,
+network, cgroup, UTS and IPC namespaces (`agent/userns.go`). There it is root
+with all capabilities, but only over these namespaces:
 
-- It remounts `/sys/fs/cgroup` and `/proc/sys` read-write.
-- It links `/dev/kmsg` to `/dev/null`, so the kubelet's OOM watcher starts.
-  OOM kills still show up as `OOMKilled` in the pod status.
-- Docker's default seccomp profile stays active. It blocks `keyctl` and
-  `pivot_root`, so containerd calls runc through a wrapper with
-  `--no-new-keyring --no-pivot`.
+- uid and gid 0-65535 map to themselves, so files keep their owners.
+- pasta copies the container's address into the new network namespace, NATs
+  outgoing traffic and forwards the WebRTC UDP port. WebRTC, flannel and
+  kube-proxy work as before.
+- A new `cgroup2` mount gives the kubelet a writable cgroup tree.
+- The kubelet runs with the feature gate `KubeletInUserNamespace`.
+  containerd runs with `restrict_oom_score_adj` and without AppArmor.
+- Docker's `/sys` is read-only, and in a user namespace the kernel allows only
+  read-only `sysfs` mounts. containerd calls runc through the agent
+  (`agent/runc.go`), which marks the `sysfs` mounts of containers read-only.
+- `/dev/kmsg` links to `/dev/null`, so the kubelet's OOM watcher starts. OOM
+  kills still show up as `OOMKilled` in the pod status.
 
-`--privileged` still works.
+Alternative that keeps Docker's seccomp profile: capabilities instead of a user
+namespace.
+
+```
+--cap-add SYS_ADMIN --cap-add NET_ADMIN --cap-add SYS_RESOURCE --cap-add SYS_PTRACE --security-opt apparmor=unconfined
+```
+
+Then the agent remounts `/sys/fs/cgroup` and `/proc/sys` read-write and calls
+runc with `--no-new-keyring --no-pivot`, because the profile blocks `keyctl`
+and `pivot_root`. `CAP_SYS_ADMIN` is close to root, though. `--privileged`
+still works, too. Real isolation from the host needs rootless Docker or Podman.
 
 ## Limits
 
