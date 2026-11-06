@@ -16,7 +16,11 @@
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 <style>
   .kwasm-wrap { position: relative; display: flex; flex-direction: column; border-radius: 6px; background: #0d1117; overflow: hidden; }
-  .kwasm-terminal { height: 70vh; min-height: 420px; padding: 8px; background: #0d1117; overflow: hidden; box-sizing: border-box; }
+  .kwasm-terminal { height: 70vh; min-height: 420px; background: #0d1117; overflow: hidden; box-sizing: border-box; }
+  /* The padding belongs on .xterm: the fit addon subtracts it there, but it
+     counts the full height of the parent, so padding on the parent pushes the
+     last row under the status line. */
+  .kwasm-terminal .xterm { padding: 8px; }
   .kwasm-status { padding: 4px 12px; font: .8rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #8b949e; background: #161b22; border-top: 1px solid #30363d; white-space: nowrap; overflow-x: auto; }
   .kwasm-status .kwasm-node + .kwasm-node { margin-left: 1.5em; }
   .kwasm-wrap[hidden] { display: none; }
