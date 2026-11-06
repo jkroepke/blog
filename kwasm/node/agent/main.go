@@ -500,6 +500,8 @@ var noise = []string{
 	"Failed to get node when trying to set owner ref to the node lease",
 	"/run/flannel/subnet.env",             // pods start before flannel is ready on this node
 	"Stopped receiving OOM notifications", // /dev/kmsg is /dev/null without --privileged
+	// The kubelet sends events before its client certificate exists.
+	`User \"system:anonymous\" cannot create resource \"events\"`,
 }
 
 func isNoise(line string) bool {
