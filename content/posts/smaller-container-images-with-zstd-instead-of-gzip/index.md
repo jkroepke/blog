@@ -123,7 +123,7 @@ The gzip image took 6.5 seconds on average, the zstd images 5.3 to 5.4 seconds.
 That is about 18 % faster, even though unpacking here is mostly limited by writing 450 MB to disk, not by decompression.
 On a real pull from a registry, the node additionally downloads 20 % less data.
 
-## Building zstd images with BuildKit
+## Building zstd images
 
 The [image exporter](https://docs.docker.com/build/exporters/image-registry/) of BuildKit has four options that matter here:
 
@@ -164,6 +164,32 @@ With [docker/build-push-action](https://github.com/docker/build-push-action), re
 
 This is the line I added for the [kwasm node image](https://github.com/jkroepke/blog/tree/main/kwasm).
 
+### Podman and Buildah
+
+Podman and Buildah handle compression differently from BuildKit. Locally, they store layers uncompressed.
+The compression happens when you push the image, so you set it on `push`, not on `build`:
+
+```bash
+podman build -t registry.example.com/app:1.0.0 .
+podman push --compression-format zstd --compression-level 19 registry.example.com/app:1.0.0
+```
+
+`buildah push` accepts the same flags. For zstd, the level range is 1 to 20.
+
+`--force-compression` exists here too, but it is enabled automatically when you pass `--compression-format` on the command line.
+That means the first cache trap I describe below for BuildKit does not hit you in the same way.
+
+If you do not want to remember the flags, set a default in `containers.conf`:
+
+```toml
+[engine]
+compression_format = "zstd"
+compression_level = 19
+```
+
+Podman also supports `zstd:chunked`. It is still zstd, but with additional metadata that allows CRI-O and Podman to pull only the files that are not already on the node.
+Other runtimes treat it as normal zstd.
+
 ### Converting existing images
 
 If you want to try zstd before changing any build, [skopeo](https://github.com/podman-container-tools-community/skopeo) and
@@ -180,7 +206,7 @@ Without `--dest-force-compress-format`, skopeo may reuse existing gzip blobs. Th
 
 This approach fits well if you already mirror public images into an internal registry, which I recommend anyway.
 
-## The two cache traps I ran into
+## The two BuildKit cache traps I ran into
 
 While measuring, I lost some time because the results did not change when I expected them to.
 Both problems come from the BuildKit cache, and neither of them produces a warning.
@@ -245,7 +271,7 @@ In practice, the clusters are not the problem. The tools around them are:
 If you publish an image that anybody can pull, somebody will pull it with Docker 20.10 on a forgotten build server, and the bug report will end up with you.
 For public images, I would keep gzip for the default tag and publish zstd as an additional tag, at least until old clients are really gone.
 
-It is technically possible to put gzip and zstd variants of the same platform into one image index.
+It is technically possible to put gzip and zstd variants of the same platform into one image index, for example with `podman manifest push --add-compression zstd`.
 However, older clients do not select a manifest by compression, so this does not help exactly the clients it is supposed to help.
 
 ### Very small images
