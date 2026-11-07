@@ -23,8 +23,6 @@ I could not find a good reason. For images you build and run yourself, I think z
 
 ## How image layers are compressed
 
-To understand why the compression matters, let's look at what happens during an image pull.
-
 A container image is not one file. It consists of a manifest, a config, and a list of layers.
 Each layer is a tar archive with the files that one build step added or changed.
 The registry does not store this tar archive directly. It stores a compressed version of it, called a blob.
@@ -49,7 +47,7 @@ A gzip layer looks like this:
 
 For zstd, the media type ends with `tar+zstd` instead.
 zstd is not a new image format. It is the same tar archive, only compressed differently.
-This is the important part. The compression is not hidden inside the blob. It is part of the image format.
+The compression is not hidden inside the blob. It is part of the image format.
 That means every client must understand the media type, or it cannot pull the image.
 
 gzip is the default because Docker used it from the beginning, long before the OCI specification existed.
@@ -58,7 +56,7 @@ It was a good choice at that time. Today, it is not anymore.
 ## Why zstd fits this workload better
 
 [zstd](https://facebook.github.io/zstd/) is a compression algorithm from Facebook, released in 2016.
-It was built for exactly this kind of workload: decompression is fast at every level, and there is a wide range of levels to trade build time for size.
+It fits this workload well: decompression is fast at every level, and there is a wide range of levels to trade build time for size.
 
 gzip has neither. Decompression is slow, and higher levels barely improve the result.
 
@@ -67,7 +65,7 @@ For a platform team, both sides of the pull matter:
 - Size means registry storage, network egress, and the time a new node needs before its pods can start.
 - Decompression speed means CPU on the node during the pull.
 
-The second one is easy to underestimate.
+Many people forget the CPU part.
 When the cluster autoscaler adds ten nodes at once, every one of them pulls the same images at the same time.
 In practice, decompression then competes for CPU with the kubelet, the CNI plugin, and the first pods that are already starting.
 
@@ -79,21 +77,21 @@ I took three popular images from Docker Hub (`nginx:1.29`, `postgres:17`, and `p
 decompressed every layer, and compressed the raw tar archives again with gzip and zstd at different levels.
 This test uses the C libraries (zlib and libzstd), single-threaded, on a cloud VM with 4 vCPUs.
 
-| Compression   | Total size | vs. gzip-6 | Decompression |
-|---------------|-----------:|-----------:|--------------:|
-| gzip level 6  |   263.1 MB |      100 % |        5.32 s |
-| gzip level 9  |   261.7 MB |       99 % |        5.18 s |
-| zstd level 3  |   236.9 MB |       90 % |        1.08 s |
-| zstd level 9  |   210.8 MB |       80 % |        1.94 s |
-| zstd level 19 |   185.8 MB |       71 % |        2.21 s |
+| Compression                 | nginx:1.29 | postgres:17 | python:3.13-slim |    Total | vs. gzip level 6 | Decompression |
+|-----------------------------|-----------:|------------:|-----------------:|---------:|-----------------:|--------------:|
+| Uncompressed tar            |   164.5 MB |    461.1 MB |         122.5 MB | 748.1 MB |            284 % |             - |
+| Docker Hub original (gzip)  |    62.9 MB |    161.3 MB |          43.1 MB | 267.3 MB |            102 % |        5.86 s |
+| gzip level 6                |    62.2 MB |    157.9 MB |          43.0 MB | 263.1 MB |            100 % |        5.32 s |
+| gzip level 9                |    61.9 MB |    157.0 MB |          42.8 MB | 261.7 MB |             99 % |        5.18 s |
+| zstd level 3                |    56.6 MB |    142.8 MB |          37.5 MB | 236.9 MB |             90 % |        1.08 s |
+| zstd level 9                |    49.3 MB |    127.6 MB |          33.9 MB | 210.8 MB |             80 % |        1.94 s |
+| zstd level 19               |    43.8 MB |    111.8 MB |          30.2 MB | 185.8 MB |             71 % |        2.21 s |
 
-Two results surprised me.
+Decompression is the total single-threaded time for all layers of the three images.
 
-First, gzip level 9 is not worth it. It costs three to four times the CPU of level 6 during compression and saves less than 1 %.
-So tuning gzip does not help. Switching does.
+gzip level 9 is not worth it. It needs three to four times the CPU of level 6 and saves less than 1 %. Tuning gzip does not help. Switching does.
 
-Second, even the slowest zstd setting decompresses more than twice as fast as gzip, and the default level is about five times faster.
-With zstd, the cost of a smaller image is paid once in CI, not on every node that pulls it.
+The bigger difference is decompression. zstd at the default level decompresses about five times faster than gzip, and even level 19 is still more than twice as fast. The smaller image is paid once in CI, not on every node that pulls it.
 
 ### What BuildKit actually produces
 
@@ -204,7 +202,7 @@ docker run --rm ghcr.io/podman-container-tools-community/skopeo:v1 copy --all \
 
 Without `--dest-force-compress-format`, skopeo may reuse existing gzip blobs. This is the same behavior as in BuildKit, which I explain in the next section.
 
-This approach fits well if you already mirror public images into an internal registry, which I recommend anyway.
+This works well if you already mirror public images into an internal registry, which I recommend anyway.
 
 ## The two BuildKit cache traps I ran into
 
@@ -219,7 +217,7 @@ Layers that already exist in the cache, including every layer of the image in yo
 I built the same image twice, first with gzip and then with `compression=zstd`.
 The second export still contained a `tar+gzip` layer with exactly the same digest as before. Only `force-compression=true` converted it.
 
-The tricky part is the base image. In a typical application image, most bytes are in the base image.
+The tricky part is the base image. In a typical application image, it holds most of the bytes.
 Without `force-compression=true`, you can end up with an image that is still mostly gzip, while the build script says zstd.
 
 ### Trap 2: the compression level is not part of the cache key
@@ -242,7 +240,7 @@ Every layer should be `application/vnd.oci.image.layer.v1.tar+zstd`.
 
 ## Who can pull zstd images
 
-As explained above, the compression is part of the media type.
+The compression is part of the media type.
 A client either understands `tar+zstd`, or the pull fails with an error about an unsupported media type. There is no automatic fallback to gzip.
 
 | Component                 | zstd support |
@@ -257,7 +255,7 @@ Kubernetes itself does not care about the compression.
 The kubelet never touches layers; the container runtime does.
 In practice, current Kubernetes distributions ship containerd 1.7 or 2.x, or a current CRI-O. All of them can pull zstd images.
 
-In practice, the clusters are not the problem. The tools around them are:
+The clusters are not the problem. The tools around them are:
 
 - CI runners and developer machines that still run a Docker Engine older than 23.0.
 - Security scanners, SBOM tools, and admission controllers that download and unpack layers themselves. Current versions of the common tools support zstd, but check the version you actually run, not the latest release.
@@ -272,7 +270,7 @@ If you publish an image that anybody can pull, somebody will pull it with Docker
 For public images, I would keep gzip for the default tag and publish zstd as an additional tag, at least until old clients are really gone.
 
 It is technically possible to put gzip and zstd variants of the same platform into one image index, for example with `podman manifest push --add-compression zstd`.
-However, older clients do not select a manifest by compression, so this does not help exactly the clients it is supposed to help.
+But older clients do not select a manifest by compression. So it does not help the clients that need it.
 
 ### Very small images
 
