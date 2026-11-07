@@ -76,6 +76,13 @@ jobs:
         env:
           # on a cache hit only the (cheap) web part is rebuilt
           TARGET: ${{ steps.cache-kwasm.outputs.cache-hit == 'true' && 'web' || 'build' }}
+
+      # Only when the wasm was rebuilt: the cache key covers everything the
+      # tests check (kwasm/k8s/**, kwasm/mise.toml).
+      - name: Test kwasm
+        if: steps.cache-kwasm.outputs.cache-hit != 'true'
+        working-directory: kwasm
+        run: mise run test
       
       # go mod tidy (e.g. from Renovate) drops the theme because no Go code
       # imports it. Hugo then silently falls back to an old LoveIt release.
