@@ -1,7 +1,7 @@
 +++
 date = '2026-11-07T10:00:00+01:00'
 title = 'Smaller Container Images with zstd Instead of gzip'
-description = 'Container image layers are still compressed with gzip by default. zstd makes them 10 to 30 % smaller and decompresses about five times faster. How image layers are compressed, how to build zstd images with BuildKit, the cache traps I ran into, and where zstd still breaks.'
+description = 'Container image layers are still compressed with gzip by default. zstd makes them 10 to 20 % smaller and decompresses about six times faster. How image layers are compressed, how to build zstd images with BuildKit, the cache traps I ran into, and where zstd still breaks.'
 categories = ['Kubernetes']
 tags = ['Docker', 'BuildKit', 'containerd', 'Kubernetes', 'zstd', 'Container Images']
 +++
@@ -71,55 +71,50 @@ In practice, decompression then competes for CPU with the kubelet, the CNI plugi
 
 ## Measuring the difference
 
-I did not want to trust benchmarks from someone else, so I measured it myself.
+I did not want to trust benchmarks from someone else, so I measured it myself, with BuildKit, because that is what builds most images.
 
-I took three popular images from Docker Hub (`nginx:1.29`, `postgres:17`, and `python:3.13-slim`, all linux/amd64),
-decompressed every layer, and compressed the raw tar archives again with gzip and zstd at different levels.
-This test uses the C libraries (zlib and libzstd), single-threaded, on a cloud VM with 4 vCPUs.
+I took three popular images from Docker Hub (`nginx:1.29`, `postgres:17`, and `python:3.13-slim`, all linux/amd64)
+and built each root filesystem again as a single layer:
 
-| Compression                 | nginx:1.29 | postgres:17 | python:3.13-slim |    Total | vs. gzip level 6 | Decompression |
-|-----------------------------|-----------:|------------:|-----------------:|---------:|-----------------:|--------------:|
-| Uncompressed tar            |   164.5 MB |    461.1 MB |         122.5 MB | 748.1 MB |            284 % |             - |
-| Docker Hub original (gzip)  |    62.9 MB |    161.3 MB |          43.1 MB | 267.3 MB |            102 % |        5.86 s |
-| gzip level 6                |    62.2 MB |    157.9 MB |          43.0 MB | 263.1 MB |            100 % |        5.32 s |
-| gzip level 9                |    61.9 MB |    157.0 MB |          42.8 MB | 261.7 MB |             99 % |        5.18 s |
-| zstd level 3                |    56.6 MB |    142.8 MB |          37.5 MB | 236.9 MB |             90 % |        1.08 s |
-| zstd level 9                |    49.3 MB |    127.6 MB |          33.9 MB | 210.8 MB |             80 % |        1.94 s |
-| zstd level 19               |    43.8 MB |    111.8 MB |          30.2 MB | 185.8 MB |             71 % |        2.21 s |
+```dockerfile
+FROM postgres:17 AS src
+FROM scratch
+COPY --from=src / /
+```
 
-Decompression is the total single-threaded time for all layers of the three images.
+That way, BuildKit has to compress every byte itself and cannot reuse the gzip blobs from Docker Hub.
+Before every run, I pruned the build cache with `docker buildx prune -af`, so every setting starts from zero.
+The builder is a `docker-container` builder with BuildKit v0.34 and buildx 0.38 on Docker Desktop (Apple M1).
 
-gzip level 9 is not worth it. It needs three to four times the CPU of level 6 and saves less than 1 %. Tuning gzip does not help. Switching does.
+| BuildKit output     | nginx:1.29 | postgres:17 | python:3.13-slim |    Total | vs. gzip | Compression | Decompression |
+|---------------------|-----------:|------------:|-----------------:|---------:|---------:|------------:|--------------:|
+| `compression=gzip`  |    63.5 MB |    160.9 MB |          43.2 MB | 267.6 MB |    100 % |      19.3 s |        3.70 s |
+| gzip, level 9       |    63.4 MB |    160.3 MB |          43.1 MB | 266.8 MB |   99.7 % |      67.4 s |        3.74 s |
+| `compression=zstd`  |    55.8 MB |    146.5 MB |          38.0 MB | 240.3 MB |     90 % |       4.4 s |        0.63 s |
+| zstd, level 9       |    53.3 MB |    138.3 MB |          36.1 MB | 227.8 MB |     85 % |       5.3 s |        0.62 s |
+| zstd, level 19      |    49.8 MB |    128.1 MB |          33.9 MB | 211.8 MB |     79 % |      34.1 s |        0.65 s |
 
-The bigger difference is decompression. zstd at the default level decompresses about five times faster than gzip, and even level 19 is still more than twice as fast. The smaller image is paid once in CI, not on every node that pulls it.
+Compression is the time of the "exporting layers" step for all three images, as BuildKit reports it.
+Decompression is the total single-threaded time for all three layers, best of five runs,
+with the same Go decoders that containerd uses: `compress/gzip` from the standard library and [klauspost/compress](https://github.com/klauspost/compress) for zstd.
 
-### What BuildKit actually produces
+gzip level 9 is not worth it. It needs three to four times the CPU of the default level and saves less than 1 %. Tuning gzip does not help. Switching does.
 
-The table above shows what is possible with libzstd. BuildKit does not use libzstd.
-It uses the pure Go encoder from [klauspost/compress](https://github.com/klauspost/compress), which maps the zstd levels to four internal speed modes.
-All levels above 10 end up in its "best" mode, which is roughly comparable to zstd level 11, not 19.
-
-So I repeated the test with BuildKit itself (Docker 29.9, buildx 0.38).
-I built the `postgres:17` root filesystem as a single layer, with an empty build cache for every run:
-
-| BuildKit output       | Layer size | vs. gzip | Build time |
-|-----------------------|-----------:|---------:|-----------:|
-| `compression=gzip`    |   160.9 MB |    100 % |     24.1 s |
-| gzip, level 9         |   160.3 MB |   99.6 % |     58.9 s |
-| `compression=zstd`    |   146.5 MB |     91 % |     11.1 s |
-| zstd, level 9         |   138.4 MB |     86 % |     14.7 s |
-| zstd, level 19        |   128.1 MB |     80 % |     34.5 s |
-
-The build time includes copying 450 MB of files into the image, so the difference caused by the compression alone is even larger.
-
-The default zstd setting builds about twice as fast as the default gzip setting and is still 9 % smaller.
-Level 19 costs around 10 seconds more than gzip and produces a 20 % smaller layer.
+The default zstd setting compresses about four times faster than the default gzip setting and is still 10 % smaller.
+Level 19 needs around 15 seconds more than gzip for all three images and makes them 21 % smaller.
 For me, that is an easy trade in a CI pipeline.
 
-I also loaded these images into Docker with the containerd image store (`docker load`, three runs each).
+The bigger difference is decompression. zstd decompresses about six times faster than gzip, and the level does not matter for that.
+The smaller image is paid once in CI, not on every node that pulls it.
+
+You may notice that level 19 is not as small as you would expect from the `zstd` command line tool.
+BuildKit does not use libzstd. It uses the pure Go encoder from klauspost/compress, which maps the zstd levels to four internal speed modes.
+All levels above 10 end up in its "best" mode, which is roughly comparable to zstd level 11.
+
+I also loaded the `postgres:17` image into Docker with the containerd image store (`docker load`, three runs each, on a linux/amd64 VM).
 The gzip image took 6.5 seconds on average, the zstd images 5.3 to 5.4 seconds.
 That is about 18 % faster, even though unpacking here is mostly limited by writing 450 MB to disk, not by decompression.
-On a real pull from a registry, the node additionally downloads 20 % less data.
+On a real pull from a registry, the node additionally downloads up to 20 % less data.
 
 ## Building zstd images
 
@@ -289,7 +284,7 @@ For everything else, meaning internal images that run on your own clusters, I se
 ## My current approach
 
 1. Build every internal image with `compression=zstd,force-compression=true,oci-mediatypes=true`.
-2. Use level 9 as the default. It is barely slower to build than level 3 and around 10 % smaller.
+2. Use level 9 as the default. It is barely slower to build than level 3 and around 5 % smaller.
 3. Use level 19 for large images that are pulled very often, such as node images, CI runner images, or ML images. The additional CI minutes pay off with the first scale-up of the cluster.
 4. Re-compress public images with zstd when mirroring them into an internal registry.
 5. Check the tools before the switch, especially old Docker Engines in CI and the scanners in the pipeline. The clusters are usually fine.
