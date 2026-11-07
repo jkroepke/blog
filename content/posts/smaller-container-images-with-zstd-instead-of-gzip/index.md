@@ -1,6 +1,6 @@
 +++
 date = '2026-11-07T10:00:00+01:00'
-title = 'Your Container Images Should Use zstd, Not gzip'
+title = 'Smaller Container Images with zstd Instead of gzip'
 description = 'Container image layers are still compressed with gzip by default. zstd makes them 10 to 30 % smaller and decompresses about five times faster. How image layers are compressed, how to build zstd images with BuildKit, the cache traps I ran into, and where zstd still breaks.'
 categories = ['Kubernetes']
 tags = ['Docker', 'BuildKit', 'containerd', 'Kubernetes', 'zstd', 'Container Images']
