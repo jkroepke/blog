@@ -204,6 +204,13 @@ Without `--dest-force-compress-format`, skopeo may reuse existing gzip blobs. Th
 
 This works well if you already mirror public images into an internal registry, which I recommend anyway.
 
+{{< admonition type=warning title="Converting breaks signatures" >}}
+Re-compressing changes the digest of every layer, and with it the digest of the manifest.
+Signatures and attestations, for example from cosign or Notation, are bound to the original digest.
+They do not match the converted image anymore, and policies that verify them will reject it.
+If you verify signatures, sign the converted image again with your own key, and do not expect the upstream signatures to carry over.
+{{< /admonition >}}
+
 ## The two BuildKit cache traps I ran into
 
 While measuring, I lost some time because the results did not change when I expected them to.
