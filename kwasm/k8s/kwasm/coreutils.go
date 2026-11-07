@@ -829,7 +829,18 @@ func wget(ctx context.Context, hc interp.HandlerContext, args []string, _ interp
 	return nil
 }
 
-var localClient = &http.Client{Transport: &http.Transport{DialContext: (&net.Dialer{}).DialContext}}
+// No keep-alive: a pooled connection would keep answering for a server that
+// has stopped since.
+var localClient = &http.Client{Transport: &http.Transport{DialContext: dialLocal, DisableKeepAlives: true}}
+
+// dialLocal dials in the in-process network of the wasm. It has no resolver,
+// so localhost becomes 127.0.0.1.
+func dialLocal(ctx context.Context, network, addr string) (net.Conn, error) {
+	if host, port, err := net.SplitHostPort(addr); err == nil && host == "localhost" {
+		addr = net.JoinHostPort("127.0.0.1", port)
+	}
+	return (&net.Dialer{}).DialContext(ctx, network, addr)
+}
 
 func download(ctx context.Context, hc interp.HandlerContext, u, name string, quiet bool) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
