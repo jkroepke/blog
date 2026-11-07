@@ -47,7 +47,8 @@ browser tab (single wasm binary)                     docker run kwasm-node
 - `proxy 8080` opens `localhost:8080` of the Wasm in a new browser tab. A
   service worker under `/kwasm-proxy/` (`static/kwasm-proxy/sw.js`) hands
   every request of that tab to the terminal tab, which sends it to the
-  in-process network. The tab works as long as the terminal tab is open.
+  in-process network. The tab works as long as the terminal tab is open;
+  leaving the terminal page unregisters the worker.
 - `free` shows the WebAssembly memory (wasm32 ends at 4 GiB, and the linear
   memory never shrinks), the Go heap and the number of goroutines.
 - `vi` (`k8s/kwasm/vi.go`) is a small vi for manifests. It runs in raw mode:
@@ -91,7 +92,7 @@ The tasks live in `kwasm/mise.toml`. mise installs Go and Node.js.
 ```bash
 cd kwasm
 mise run build       # assets/kwasm/{kwasm.wasm.zst,kwasm.js,unzstd.js,xterm.css}
-mise run node-image  # ghcr.io/jkroepke/kwasm-node:<version> for the local platform
+mise run node-image  # ghcr.io/jkroepke/kwasm-node:latest for the local platform
 cd .. && hugo server # http://localhost:1313/kubernetes/
 ```
 
@@ -116,7 +117,8 @@ only `max-age=600`.
    `join`.
 
 The node image is built by `.github/workflows/kwasm-node.yaml` with the same
-version.
+version and pushed as `latest` only. The printed `docker run` uses
+`--pull always`, so a join always runs the current image.
 
 ## Node without --privileged
 
@@ -125,6 +127,7 @@ The node container runs a kubelet, containerd and runc, but it needs neither
 
 | Flag | Why |
 | --- | --- |
+| `--pull always` | the image has only the `latest` tag; this fetches the current one instead of a cached old one |
 | `--memory 2g --pids-limit 4096` | the node evicts and garbage collects almost never, so the limits keep a runaway pod from taking down the host |
 | `--security-opt seccomp=unconfined` | Docker's profile allows a new user namespace only with `CAP_SYS_ADMIN` |
 | `--security-opt systempaths=unconfined` | the kernel refuses a new `sysfs` and `cgroup2` mount while Docker masks parts of `/proc` and `/sys` |

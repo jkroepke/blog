@@ -64,6 +64,6 @@ jobs:
           # docker buildx imagetools inspect --format '{{ json .SBOM }}' <image>
           provenance: mode=max
           sbom: true
-          tags: |
-            ghcr.io/jkroepke/kwasm-node:${{ steps.version.outputs.kubernetes }}
-            ghcr.io/jkroepke/kwasm-node:latest
+          # Only latest: the printed docker run uses --pull always, so every
+          # join gets the image that matches the current page.
+          tags: ghcr.io/jkroepke/kwasm-node:latest
