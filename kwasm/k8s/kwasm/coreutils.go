@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -767,6 +768,8 @@ func xargs(ctx context.Context, hc interp.HandlerContext, args []string, exec in
 
 // wget downloads with the fetch() of the browser (net/http on js/wasm), so
 // only servers that send CORS headers work, raw.githubusercontent.com does.
+// localhost stays in the wasm: kubectl port-forward 8080:80 & then
+// wget -qO- localhost:8080 reaches the pod.
 func wget(ctx context.Context, hc interp.HandlerContext, args []string, _ interp.ExecHandlerFunc) error {
 	o, args, err := opts("wget", args, "qO:", map[string]string{"quiet": "q", "output-document": "O"})
 	if err != nil {
@@ -800,12 +803,23 @@ func wget(ctx context.Context, hc interp.HandlerContext, args []string, _ interp
 	return nil
 }
 
+var localClient = &http.Client{Transport: &http.Transport{DialContext: (&net.Dialer{}).DialContext}}
+
 func download(ctx context.Context, hc interp.HandlerContext, u, name string, quiet bool) error {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
 		return fail(hc, 1, "wget: %v", err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	client := http.DefaultClient
+	if h := req.URL.Hostname(); h == "localhost" || h == "127.0.0.1" || h == "::1" {
+		// localhost is the in-process network of the wasm, where kubectl
+		// port-forward listens. A Transport with a dialer skips fetch().
+		client = localClient
+	}
+	resp, err := client.Do(req)
+	if err != nil && client == localClient {
+		return fail(hc, 4, "wget: %s: %v", u, err)
+	}
 	if err != nil {
 		// fetch() reports a CORS block as a plain network error.
 		return fail(hc, 4, "wget: %s: %v (the server must allow CORS requests)", u, err)
