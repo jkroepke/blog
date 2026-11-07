@@ -6,23 +6,28 @@ categories = ['Kubernetes']
 tags = ['Docker', 'BuildKit', 'containerd', 'Kubernetes', 'zstd', 'Container Images']
 +++
 
-Recently, I worked on the node image for [Kubernetes in your browser](/kubernetes/), the small experiment on this blog where a real Kubernetes control plane runs as WebAssembly in a browser tab.
-To join a node, you start a container that runs a kubelet and containerd. Nobody wants to wait for a large image download before a demo starts, so I tried to make that image as small as possible.
+Do you know how the layers of your container images are compressed?
 
-Removing unused tools and stripping binaries helped. The change that surprised me most was a single line in the build workflow: switching the layer compression from gzip to **zstd**.
-The image became about 20 % smaller, and I did not touch a single file inside it.
+Most likely with gzip. Not because somebody decided it. It is just the default, and nobody changes defaults.
 
-That made me curious. Why is almost every image I pull still compressed with gzip, when zstd has been part of the OCI image specification for years?
+I recently ran into this while working on the node image for [Kubernetes in your browser](/kubernetes/), the small experiment on this blog where a real Kubernetes control plane runs as WebAssembly in a browser tab.
+To join a node, you start a container with a kubelet and containerd. Nobody wants to wait for a large download before a demo starts, so I tried to make that image as small as possible.
+
+Removing unused tools and stripping binaries helped, as expected.
+What surprised me was a single line in the build workflow: switching the layer compression from gzip to zstd.
+The image became about 20 % smaller. Without touching a single file inside it.
+
+zstd has been part of the OCI image specification for years. So why is almost every image I pull still gzip?
 
 I could not find a good reason. For images you build and run yourself, I think zstd should be the default.
 
 ## How image layers are compressed
 
-To understand why the compression matters, it helps to look at what actually happens during an image pull.
+To understand why the compression matters, let's look at what happens during an image pull.
 
-A container image is not one file. It consists of a **manifest**, a **config**, and a list of **layers**.
+A container image is not one file. It consists of a manifest, a config, and a list of layers.
 Each layer is a tar archive with the files that one build step added or changed.
-The registry does not store this tar archive directly, but a compressed version of it, called a **blob**.
+The registry does not store this tar archive directly. It stores a compressed version of it, called a blob.
 
 When a node pulls an image, the container runtime:
 
@@ -31,7 +36,7 @@ When a node pulls an image, the container runtime:
 3. Decompresses the blob.
 4. Unpacks the tar archive into the snapshotter, for example overlayfs.
 
-The manifest also tells the runtime how each blob is compressed, through its **media type**.
+The manifest also tells the runtime how each blob is compressed, through its media type.
 A gzip layer looks like this:
 
 ```json
@@ -43,30 +48,32 @@ A gzip layer looks like this:
 ```
 
 For zstd, the media type ends with `tar+zstd` instead.
-This is the important part: the compression is not hidden inside the blob. It is part of the image format, and every client must understand the media type to pull the image.
+zstd is not a new image format. It is the same tar archive, only compressed differently.
+This is the important part. The compression is not hidden inside the blob. It is part of the image format.
+That means every client must understand the media type, or it cannot pull the image.
 
 gzip is the default because Docker used it from the beginning, long before the OCI specification existed.
-It was a reasonable choice at that time. It is simply not the best choice anymore.
+It was a good choice at that time. Today, it is not anymore.
 
 ## Why zstd fits this workload better
 
 [zstd](https://facebook.github.io/zstd/) is a compression algorithm from Facebook, released in 2016.
-It was designed for exactly this kind of workload: decompression is fast at every compression level, and there is a wide range of levels to trade build time for size.
+It was built for exactly this kind of workload: decompression is fast at every level, and there is a wide range of levels to trade build time for size.
 
-gzip has neither of these properties. Its decompression is comparably slow, and higher levels barely improve the result.
+gzip has neither. Decompression is slow, and higher levels barely improve the result.
 
 For a platform team, both sides of the pull matter:
 
-- **Size** means registry storage, network egress, and the time a new node needs before its pods can start.
-- **Decompression speed** means CPU usage on the node during the pull.
+- Size means registry storage, network egress, and the time a new node needs before its pods can start.
+- Decompression speed means CPU on the node during the pull.
 
-The second point is easy to underestimate.
+The second one is easy to underestimate.
 When the cluster autoscaler adds ten nodes at once, every one of them pulls the same images at the same time.
-Decompression then competes for CPU with the kubelet, the CNI plugin, and the first pods that already started.
+In practice, decompression then competes for CPU with the kubelet, the CNI plugin, and the first pods that are already starting.
 
 ## Measuring the difference
 
-I did not want to rely on benchmarks from someone else, so I measured it myself.
+I did not want to trust benchmarks from someone else, so I measured it myself.
 
 I took three popular images from Docker Hub (`nginx:1.29`, `postgres:17`, and `python:3.13-slim`, all linux/amd64),
 decompressed every layer, and compressed the raw tar archives again with gzip and zstd at different levels.
@@ -80,10 +87,10 @@ This test uses the C libraries (zlib and libzstd), single-threaded, on a cloud V
 | zstd level 9  |   210.8 MB |       80 % |        1.94 s |
 | zstd level 19 |   185.8 MB |       71 % |        2.21 s |
 
-Two results stand out.
+Two results surprised me.
 
 First, gzip level 9 is not worth it. It costs three to four times the CPU of level 6 during compression and saves less than 1 %.
-Tuning gzip is not an alternative to switching the algorithm.
+So tuning gzip does not help. Switching does.
 
 Second, even the slowest zstd setting decompresses more than twice as fast as gzip, and the default level is about five times faster.
 With zstd, the cost of a smaller image is paid once in CI, not on every node that pulls it.
@@ -109,7 +116,7 @@ The build time includes copying 450 MB of files into the image, so the differenc
 
 The default zstd setting builds about twice as fast as the default gzip setting and is still 9 % smaller.
 Level 19 costs around 10 seconds more than gzip and produces a 20 % smaller layer.
-In a CI pipeline, I am happy to make that trade.
+For me, that is an easy trade in a CI pipeline.
 
 I also loaded these images into Docker with the containerd image store (`docker load`, three runs each).
 The gzip image took 6.5 seconds on average, the zstd images 5.3 to 5.4 seconds.
@@ -178,21 +185,23 @@ This approach fits well if you already mirror public images into an internal reg
 While measuring, I lost some time because the results did not change when I expected them to.
 Both problems come from the BuildKit cache, and neither of them produces a warning.
 
-**Trap 1: without `force-compression`, existing layers stay gzip.**
+### Trap 1: without `force-compression`, existing layers stay gzip
+
 BuildKit applies the `compression` option only to layers it creates in this build.
 Layers that already exist in the cache, including every layer of the image in your `FROM` line, are reused as they are.
 
 I built the same image twice, first with gzip and then with `compression=zstd`.
 The second export still contained a `tar+gzip` layer with exactly the same digest as before. Only `force-compression=true` converted it.
 
-This matters more than it sounds. In a typical application image, most bytes are in the base image.
+The tricky part is the base image. In a typical application image, most bytes are in the base image.
 Without `force-compression=true`, you can end up with an image that is still mostly gzip, while the build script says zstd.
 
-**Trap 2: the compression level is not part of the cache key.**
+### Trap 2: the compression level is not part of the cache key
+
 After building a zstd layer at level 3, I built again with `compression-level=19,force-compression=true`.
 BuildKit returned the level 3 blob from the cache, with the same size and the same digest.
 
-BuildKit converts layers when the compression *type* is wrong.
+BuildKit converts layers when the compression type is wrong.
 A blob with the right type but a different level is considered fine.
 In CI with a fresh builder, this does not matter. On a long-living builder or with a shared cache, prune the cache once after changing the level.
 
@@ -220,25 +229,27 @@ A client either understands `tar+zstd`, or the pull fails with an error about an
 
 Kubernetes itself does not care about the compression.
 The kubelet never touches layers; the container runtime does.
-Every supported Kubernetes version runs on containerd 1.7 or 2.x, or on a current CRI-O, and all of them can pull zstd images.
+In practice, current Kubernetes distributions ship containerd 1.7 or 2.x, or a current CRI-O. All of them can pull zstd images.
 
-So the clusters are usually not the problem. The problems are in the tools around them:
+In practice, the clusters are not the problem. The tools around them are:
 
-- **CI runners and developer machines** that still run a Docker Engine older than 23.0.
-- **Security scanners, SBOM tools, and admission controllers** that download and unpack layers themselves. Current versions of the common tools support zstd, but check the version you actually run, not the latest release.
-- **Lazy pulling.** eStargz and SOCI are built around gzip. If you depend on them, zstd is not a drop-in replacement. On CRI-O and Podman, `zstd:chunked` provides lazy pulling for zstd.
-- **Registries** store blobs and usually do not look at the media type. Docker Hub, GHCR, ECR, ACR, Google Artifact Registry, Quay, and Harbor all serve zstd images. Very old self-hosted registries and proxies with a media type allowlist can be an exception.
+- CI runners and developer machines that still run a Docker Engine older than 23.0.
+- Security scanners, SBOM tools, and admission controllers that download and unpack layers themselves. Current versions of the common tools support zstd, but check the version you actually run, not the latest release.
+- Lazy pulling: eStargz and SOCI are built around gzip. If you depend on them, zstd is not a drop-in replacement. On CRI-O and Podman, `zstd:chunked` provides lazy pulling for zstd.
+- Registries store blobs and usually do not look at the media type. Docker Hub, GHCR, ECR, ACR, Google Artifact Registry, Quay, and Harbor all serve zstd images. Very old self-hosted registries and proxies with a media type allowlist can be an exception.
 
 ## When I would not use zstd
 
-**Public images with unknown consumers.**
+### Public images with unknown consumers
+
 If you publish an image that anybody can pull, somebody will pull it with Docker 20.10 on a forgotten build server, and the bug report will end up with you.
 For public images, I would keep gzip for the default tag and publish zstd as an additional tag, at least until old clients are really gone.
 
 It is technically possible to put gzip and zstd variants of the same platform into one image index.
 However, older clients do not select a manifest by compression, so this does not help exactly the clients it is supposed to help.
 
-**Very small images.**
+### Very small images
+
 A 10 MB distroless image with a single Go binary will not pull noticeably faster.
 Switching does not hurt, but do not expect a visible difference.
 
@@ -246,13 +257,12 @@ For everything else, meaning internal images that run on your own clusters, I se
 
 ## My current approach
 
-1. **Build every internal image with `compression=zstd,force-compression=true,oci-mediatypes=true`.**
-2. **Use level 9 as the default.** It is barely slower to build than level 3 and around 10 % smaller.
-3. **Use level 19 for large images that are pulled very often,** such as node images, CI runner images, or ML images. The additional CI minutes pay off with the first scale-up of the cluster.
-4. **Re-compress public images with zstd when mirroring them** into an internal registry.
-5. **Check the tools before the switch,** especially old Docker Engines in CI and the scanners in the pipeline. The clusters are usually fine.
-6. **Verify the media types in the registry** instead of trusting the build flags.
+1. Build every internal image with `compression=zstd,force-compression=true,oci-mediatypes=true`.
+2. Use level 9 as the default. It is barely slower to build than level 3 and around 10 % smaller.
+3. Use level 19 for large images that are pulled very often, such as node images, CI runner images, or ML images. The additional CI minutes pay off with the first scale-up of the cluster.
+4. Re-compress public images with zstd when mirroring them into an internal registry.
+5. Check the tools before the switch, especially old Docker Engines in CI and the scanners in the pipeline. The clusters are usually fine.
+6. Verify the media types in the registry instead of trusting the build flags.
 
-gzip became the default because it was the obvious choice when container images were invented, not because someone compared it with the alternatives later.
-For the kwasm node image, switching took one line and saved 20 %.
-For most internal images, I expect a similar result, and it is worth trying.
+For the kwasm node image, it was one line.
+Are you already using zstd for your images, or did something in your toolchain stop you?
