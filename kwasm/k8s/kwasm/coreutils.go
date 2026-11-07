@@ -771,12 +771,33 @@ func xargs(ctx context.Context, hc interp.HandlerContext, args []string, exec in
 // localhost stays in the wasm: kubectl port-forward 8080:80 & then
 // wget -qO- localhost:8080 reaches the pod.
 func wget(ctx context.Context, hc interp.HandlerContext, args []string, _ interp.ExecHandlerFunc) error {
-	o, args, err := opts("wget", args, "qO:", map[string]string{"quiet": "q", "output-document": "O"})
+	// Options may follow the urls, as with GNU wget: wget url -O x.
+	var flags, urls []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		switch {
+		case a == "--":
+			urls = append(urls, args[i+1:]...)
+			i = len(args)
+		case a == "-O" || a == "--output-document":
+			flags = append(flags, a)
+			if i+1 < len(args) {
+				i++
+				flags = append(flags, args[i])
+			}
+		case strings.HasPrefix(a, "-") && a != "-":
+			flags = append(flags, a)
+		default:
+			urls = append(urls, a)
+		}
+	}
+	o, _, err := opts("wget", flags, "qvO:", map[string]string{"quiet": "q", "verbose": "v", "output-document": "O"})
 	if err != nil {
 		return fail(hc, 2, "%v", err)
 	}
+	args = urls
 	if len(args) == 0 {
-		return fail(hc, 2, "usage: wget [-q] [-O file] url...")
+		return fail(hc, 2, "usage: wget [-q] [-v] [-O file] url...")
 	}
 	out, toFile := o["O"], has(o, "O")
 	if toFile && out != "-" && len(args) > 1 {
