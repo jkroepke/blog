@@ -166,11 +166,11 @@ This is the line I added for the [kwasm node image](https://github.com/jkroepke/
 
 ### Converting existing images
 
-If you want to try zstd before changing any build, [skopeo](https://github.com/containers/skopeo) and
+If you want to try zstd before changing any build, [skopeo](https://github.com/podman-container-tools-community/skopeo) and
 [regclient](https://github.com/regclient/regclient) can re-compress an image while copying it to another registry:
 
 ```bash
-skopeo copy --all \
+docker run --rm ghcr.io/podman-container-tools-community/skopeo:v1 copy --all \
   --dest-compress-format zstd --dest-compress-level 19 --dest-force-compress-format \
   docker://docker.io/library/postgres:17 \
   docker://registry.example.com/mirror/postgres:17-zstd
