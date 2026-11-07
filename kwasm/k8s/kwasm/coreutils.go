@@ -783,10 +783,15 @@ func wget(ctx context.Context, hc interp.HandlerContext, args []string, _ interp
 		return fail(hc, 2, "wget: -O with several urls is not supported")
 	}
 	for _, raw := range args {
-		u, err := url.Parse(raw)
-		if err == nil && u.Scheme == "" {
-			u, err = url.Parse("https://" + raw)
+		if !strings.Contains(raw, "://") {
+			// Without a scheme: http for localhost (kubectl port-forward), else https.
+			scheme := "https://"
+			if h, _, _ := strings.Cut(raw, "/"); h == "localhost" || strings.HasPrefix(h, "localhost:") || h == "127.0.0.1" || strings.HasPrefix(h, "127.0.0.1:") {
+				scheme = "http://"
+			}
+			raw = scheme + raw
 		}
+		u, err := url.Parse(raw)
 		if err != nil || (u.Scheme != "http" && u.Scheme != "https") {
 			return fail(hc, 1, "wget: %s: invalid url", raw)
 		}
