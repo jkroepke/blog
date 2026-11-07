@@ -159,9 +159,13 @@ var BackgroundContext = func(ctx context.Context, stmt *syntax.Stmt) (context.Co
 }
 `)
 
-	// kubectl proxy serves until the process ends. Here the process is the
-	// browser tab, so stop it with the command's context (Ctrl-C, kill %1),
-	// the way port-forward does.
+	// port-forward and proxy serve until the process ends. Here the process is
+	// the browser tab, so stop them with the command's context (Ctrl-C,
+	// kill %1). port-forward has RunPortForwardContext, the command does not
+	// use it.
+	edit("staging/src/k8s.io/kubectl/pkg/cmd/portforward/portforward.go",
+		"cmdutil.CheckErr(opts.RunPortForward())", "cmdutil.CheckErr(opts.RunPortForwardContext(cmd.Context()))",
+	)
 	edit("staging/src/k8s.io/kubectl/pkg/cmd/proxy/proxy.go",
 		"import (\n", "import (\n\t\"context\"\n",
 		"cmdutil.CheckErr(o.RunProxy())", "cmdutil.CheckErr(o.runProxyContext(cmd.Context()))",

@@ -78,8 +78,8 @@ same on macOS and Linux:
   `mise.toml`. Kubernetes already vendors its only dependencies. A hook in
   its interpreter gives background jobs their own context, so they outlive
   their command line.
-- `kubectl proxy` stops with its command context, the way `port-forward`
-  does. Otherwise its listener would stay until the tab closes.
+- `kubectl port-forward` and `kubectl proxy` stop with their command
+  context. Otherwise their listeners would stay until the tab closes.
 
 Every content patch fails when its target is gone. A Kubernetes update shows
 exactly what needs attention.
