@@ -22,7 +22,9 @@
      last row under the status line. */
   .kwasm-terminal .xterm { padding: 8px; }
   .kwasm-status { padding: 4px 12px; font: .8rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: #8b949e; background: #161b22; border-top: 1px solid #30363d; white-space: nowrap; overflow-x: auto; }
-  .kwasm-status .kwasm-node + .kwasm-node { margin-left: 1.5em; }
+  .kwasm-status .kwasm-node + .kwasm-node, .kwasm-status .kwasm-port { margin-left: 1.5em; }
+  .kwasm-status a.kwasm-port { color: #58a6ff; text-decoration: none; }
+  .kwasm-status a.kwasm-port:hover { text-decoration: underline; }
   .kwasm-wrap[hidden] { display: none; }
   .kwasm-start { display: block; margin: 1rem auto; padding: .6rem 1.2rem; font-size: 1rem; cursor: pointer; }
   .kwasm-fullscreen { position: absolute; top: 8px; right: 16px; z-index: 5; padding: .2rem .5rem; font-size: .8rem; color: #c9d1d9; background: #21262d; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; opacity: .7; }
