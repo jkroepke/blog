@@ -399,8 +399,9 @@ evictionHard:
   nodefs.inodesFree: "1%"
   imagefs.available: "1%"
 imageGCHighThresholdPercent: 100
-# flannel, kube-proxy, CoreDNS and pause are pulled on every join: in parallel.
-serializeImagePulls: false
+# One image at a time: fewer parallel registry connections behind pasta,
+# where downloads now and then stall (see image_pull_progress_timeout).
+serializeImagePulls: true
 localStorageCapacityIsolation: false
 failCgroupV1: false
 `,
