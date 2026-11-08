@@ -79,11 +79,11 @@ enableEmoji = true
   # screens CSS pins it to the top right corner (assets/css/_custom.scss).
   [[menu.main]]
     weight = 5
-    identifier = "kubernetes"
-    name = "Kubernetes"
-    url = "/kubernetes/"
-    title = "A real Kubernetes control plane in your browser"
-    post = '<span class="menu-badge">live</span><span class="kubernetes-ribbon" aria-hidden="true"><span>Kubernetes in your browser</span></span>'
+    identifier = "tabernetes"
+    name = "Tabernetes"
+    url = "/tabernetes/"
+    title = "Tabernetes: a real Kubernetes control plane in your browser tab"
+    post = '<span class="menu-badge">new</span><span class="tabernetes-ribbon" aria-hidden="true"><span>Kubernetes in your tab</span></span>'
   [[menu.main]]
     weight = 6
     identifier = "about"

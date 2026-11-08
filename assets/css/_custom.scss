@@ -233,16 +233,16 @@ $kubernetes-blue-hover: #2456c4;
   background: $kubernetes-blue;
 }
 
-// The ribbon is part of the "Kubernetes" menu link, so a click on it opens
-// /kubernetes/. Only on wide screens: there the right margin is empty, and
+// The ribbon is part of the "Tabernetes" menu link, so a click on it opens
+// /tabernetes/. Only on wide screens: there the right margin is empty, and
 // it stays clear of search and the theme switch in the header.
-.kubernetes-ribbon {
+.tabernetes-ribbon {
   display: none;
 }
 
 @media only screen and (min-width: 1200px) {
   // A square in the corner under the header cuts off the rotated band.
-  #header-desktop .menu-item:not(.active) .kubernetes-ribbon {
+  #header-desktop .menu-item:not(.active) .tabernetes-ribbon {
     display: block;
     position: fixed;
     top: $header-height;
@@ -272,7 +272,7 @@ $kubernetes-blue-hover: #2456c4;
     }
   }
 
-  #header-desktop .menu-item:not(.active):hover .kubernetes-ribbon span {
+  #header-desktop .menu-item:not(.active):hover .tabernetes-ribbon span {
     background: $kubernetes-blue-hover;
   }
 }

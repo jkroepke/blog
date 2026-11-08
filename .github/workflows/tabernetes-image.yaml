@@ -1,0 +1,69 @@
+name: tabernetes image
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - tabernetes/node/**
+      - tabernetes/mise.toml
+      - .github/workflows/tabernetes-image.yaml
+
+  pull_request:
+    paths:
+      - tabernetes/node/**
+      - tabernetes/mise.toml
+      - .github/workflows/tabernetes-image.yaml
+
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  image:
+    name: Build image
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Kubernetes version
+        id: version
+        run: echo "kubernetes=$(sed -n 's/^KUBERNETES_VERSION = "\(.*\)"$/\1/p' tabernetes/mise.toml)" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Login to ghcr.io
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: tabernetes/node
+          platforms: linux/amd64,linux/arm64
+          # zstd layers are about 20 % smaller than gzip and unpack faster.
+          # Docker 23+, containerd 1.5+ and Podman pull them.
+          outputs: type=image,push=${{ github.event_name != 'pull_request' }},compression=zstd,compression-level=19,force-compression=true
+          build-args: |
+            KUBERNETES_VERSION=${{ steps.version.outputs.kubernetes }}
+          # Build provenance and an SBOM as attestations next to the image:
+          # docker buildx imagetools inspect --format '{{ json .SBOM }}' <image>
+          provenance: mode=max
+          sbom: true
+          # Only latest: the printed docker run uses --pull always, so every
+          # join gets the image that matches the current page.
+          tags: ghcr.io/jkroepke/tabernetes:latest
