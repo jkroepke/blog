@@ -213,3 +213,66 @@ $project-muted: #6b6b75;
     }
   }
 }
+
+// ==============================
+// Kubernetes menu entry and corner ribbon
+// ==============================
+$kubernetes-blue: #326ce5;
+$kubernetes-blue-hover: #2456c4;
+
+.menu-badge {
+  margin-left: .3rem;
+  padding: .05rem .35rem;
+  border-radius: .6rem;
+  font-size: .65rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: uppercase;
+  vertical-align: .15rem;
+  color: #fff;
+  background: $kubernetes-blue;
+}
+
+// The ribbon is part of the "Kubernetes" menu link, so a click on it opens
+// /kubernetes/. Only on wide screens: there the right margin is empty, and
+// it stays clear of search and the theme switch in the header.
+.kubernetes-ribbon {
+  display: none;
+}
+
+@media only screen and (min-width: 1200px) {
+  // A square in the corner under the header cuts off the rotated band.
+  #header-desktop .menu-item:not(.active) .kubernetes-ribbon {
+    display: block;
+    position: fixed;
+    top: $header-height;
+    right: 0;
+    z-index: 90;
+    width: 10.5rem;
+    height: 10.5rem;
+    overflow: hidden;
+    pointer-events: none;
+
+    span {
+      position: absolute;
+      top: 3.6rem;
+      right: -3rem;
+      width: 15rem;
+      padding: .4rem 0;
+      transform: rotate(45deg);
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      line-height: 1.2;
+      text-align: center;
+      color: #fff;
+      background: $kubernetes-blue;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, .25);
+      pointer-events: auto;
+    }
+  }
+
+  #header-desktop .menu-item:not(.active):hover .kubernetes-ribbon span {
+    background: $kubernetes-blue-hover;
+  }
+}
