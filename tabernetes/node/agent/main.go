@@ -416,7 +416,9 @@ failCgroupV1: false
 	// Now and then a registry download stops in the middle and never sends
 	// another byte (seen behind pasta on WSL2). containerd cancels a pull
 	// without progress, and the next try opens new connections and works.
-	// Do that after one minute instead of the default five.
+	// Do that after 20 seconds instead of the default five minutes. Shorter
+	// would also cancel healthy downloads that wait for a few TCP retransmits,
+	// and each failed pull costs a growing kubelet back-off.
 	//
 	// The default pull through the transfer service counts a layer as active
 	// only after it reported progress, so a download that stalls in its first
@@ -424,7 +426,7 @@ failCgroupV1: false
 	// its start.
 	containerdConfig := "version = 3\n" +
 		"[plugins.'io.containerd.cri.v1.images']\n" +
-		"  image_pull_progress_timeout = '1m'\n" +
+		"  image_pull_progress_timeout = '20s'\n" +
 		"  use_local_image_pull = true\n"
 	if inUserNS {
 		// No AppArmor and no lower oom_score_adj than our own in a user namespace.
