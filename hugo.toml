@@ -83,7 +83,7 @@ enableEmoji = true
     name = "Kubernetes"
     url = "/kubernetes/"
     title = "A real Kubernetes control plane in your browser"
-    post = '<span class="menu-badge">live</span><span class="kubernetes-ribbon" aria-hidden="true"><span>Kubernetes in your browser</span></span>'
+    post = '<span class="menu-badge">new</span><span class="kubernetes-ribbon" aria-hidden="true"><span>Kubernetes in your browser</span></span>'
   [[menu.main]]
     weight = 6
     identifier = "about"
