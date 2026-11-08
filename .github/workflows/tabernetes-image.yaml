@@ -6,12 +6,14 @@ on:
       - main
     paths:
       - tabernetes/node/**
+      - tabernetes/k8s/tabernetes/addons/**
       - tabernetes/mise.toml
       - .github/workflows/tabernetes-image.yaml
 
   pull_request:
     paths:
       - tabernetes/node/**
+      - tabernetes/k8s/tabernetes/addons/**
       - tabernetes/mise.toml
       - .github/workflows/tabernetes-image.yaml
 
@@ -54,6 +56,9 @@ jobs:
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: tabernetes/node
+          # the images of the addons are preloaded into the node image
+          build-contexts: |
+            addons=tabernetes/k8s/tabernetes/addons
           platforms: linux/amd64,linux/arm64
           # zstd layers are about 20 % smaller than gzip and unpack faster.
           # Docker 23+, containerd 1.5+ and Podman pull them.
