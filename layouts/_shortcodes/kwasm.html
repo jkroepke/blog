@@ -32,11 +32,11 @@
   .kwasm-wrap:fullscreen .kwasm-terminal, .kwasm-wrap.kwasm-fs .kwasm-terminal { flex: 1; height: auto; min-height: 0; }
 </style>
 <div class="kwasm-wrap" id="kwasm-wrap" hidden>
-  <div class="kwasm-terminal" id="kwasm" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}"></div>
+  <div class="kwasm-terminal" id="kwasm" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}" data-size="{{ len $wasm.Content }}"></div>
   <div class="kwasm-status" id="kwasm-status" aria-live="polite"></div>
   <button class="kwasm-fullscreen" id="kwasm-fullscreen" type="button" title="Full screen (Esc to leave)">Full screen</button>
 </div>
-<button class="kwasm-start" id="kwasm-start" type="button">Boot the cluster (downloads ~28 MB)</button>
+<button class="kwasm-start" id="kwasm-start" type="button">Boot the cluster (downloads ~{{ math.Round (div (float (len $wasm.Content)) 1048576) }} MB)</button>
 <script>
   (() => {
     const wrap = document.getElementById("kwasm-wrap");
