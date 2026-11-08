@@ -11,6 +11,7 @@ COPY agent/ ./
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -trimpath -ldflags="-s -w" -o /kwasm-node .
 
 FROM ${BASE_IMAGE} AS download
+ARG DEBIAN_FRONTEND=noninteractive
 ARG TARGETARCH
 ARG KUBERNETES_VERSION=v1.37.2
 ARG CONTAINERD_VERSION=2.4.2
@@ -53,6 +54,7 @@ RUN set -eux; \
 # pasta from upstream: Debian trixie stays on a snapshot from May 2025. A fixed
 # commit, so the hash checks what git fetches.
 FROM ${BASE_IMAGE} AS passt
+ARG DEBIAN_FRONTEND=noninteractive
 ARG PASST_COMMIT=6aa4f88bd9846411edff3ed70460475b538addca
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates gcc git libc6-dev make && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
@@ -66,6 +68,8 @@ RUN set -eux; \
     /out/usr/local/bin/pasta --version
 
 FROM ${BASE_IMAGE}
+# only while building, not in the image
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates iproute2 iptables mount util-linux \
  && rm -rf /var/lib/apt/lists/*
