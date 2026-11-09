@@ -11,6 +11,8 @@ Tabernetes is a real Kubernetes v1.37 control plane. Not a simulator. kube-apise
 
 A control plane without nodes is boring. Type `join` and start the printed `docker run` command. The container runs a kubelet and containerd and connects to your browser with WebRTC. Then `kubectl get pods -A` shows flannel, kube-proxy and CoreDNS on a real node.
 
+And yes, it runs Doom. After a join, type `doom`. [KubeDoom](https://github.com/storax/kubedoom) starts on the node, and every pod in the default namespace is a monster. Shoot one, and KubeDoom deletes the pod. The Deployment brings it back, of course.
+
 {{< tabernetes >}}
 
 The boot takes around 15 seconds. WebAssembly in the browser is single threaded, so the whole control plane shares one CPU core. The source is in the [blog repository](https://github.com/jkroepke/blog/tree/main/tabernetes).
