@@ -71,7 +71,7 @@ browser tab (single wasm binary)                     docker run tabernetes
   runs the pods bound to it and serves logs, exec and port-forward on
   `10.0.1.1:10250` with the streaming code of the upstream kubelet
   (`k8s.io/cri-streaming`). An image `webllm:<model>` is a
-  [WebLLM](https://webllm.mlc.ai) model id (`k8s/tabernetes/webllm.go`): a
+  [WebLLM](https://webllm.mlc.ai) model ID (`k8s/tabernetes/webllm.go`): a
   worker (`web/src/gpuworker.js`) loads the weights from Hugging Face, which
   allows CORS, and keeps them in the Cache Storage. Container registries do
   not send CORS headers, so the tab cannot pull images. The pod serves the
