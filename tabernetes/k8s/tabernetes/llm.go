@@ -22,9 +22,10 @@ metadata:
   namespace: default
   labels: {app: llm}
 spec:
-  # The tab node, nowhere else.
+  # This tab, nowhere else.
   nodeSelector:
     kubernetes.io/os: browser
+    kubernetes.io/hostname: %s
   tolerations:
   - {key: tabernetes.dev/tab, operator: Exists}
   containers:
@@ -51,6 +52,9 @@ func llmCmd(ctx context.Context, hc interp.HandlerContext, args []string) error 
 	if err != nil {
 		return fail("%v", err)
 	}
+	if n.gpu == nil {
+		return fail("this browser has no WebGPU adapter (Chrome or Edge on a machine with a GPU has one)")
+	}
 	model := ""
 	if len(args) == 1 {
 		model = args[0]
@@ -75,7 +79,7 @@ func llmCmd(ctx context.Context, hc interp.HandlerContext, args []string) error 
 		image = pod.Spec.Containers[0].Image
 		ready = podReady(pod)
 	default:
-		manifest := fmt.Sprintf(llmManifest, model)
+		manifest := fmt.Sprintf(llmManifest, tabNodeName, model)
 		if code := runKubectl(ctx, []string{"apply", "-f", "-"}, strings.NewReader(manifest), hc.Stdout, hc.Stderr); code != 0 {
 			return exitCode(code)
 		}
