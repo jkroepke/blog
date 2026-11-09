@@ -83,7 +83,7 @@ enableEmoji = true
     name = "Tabernetes"
     url = "/tabernetes/"
     title = "Tabernetes: a real Kubernetes control plane in your browser tab"
-    post = '<span class="menu-badge">new</span><span class="tabernetes-ribbon" aria-hidden="true"><span>Kubernetes in your tab</span></span>'
+    post = '<span class="tabernetes-ribbon" aria-hidden="true"><span>Kubernetes in your tab</span></span>'
   [[menu.main]]
     weight = 6
     identifier = "about"
