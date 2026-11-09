@@ -15,7 +15,7 @@ And yes, it runs Doom. After a join, type `doom`. [KubeDoom](https://github.com/
 
 Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running.
 
-Type `llm`, and the tab runs a language model as a pod on your GPU, with [WebLLM](https://webllm.mlc.ai) and WebGPU. `kubectl exec llm -- chat "What is a pod?"` asks it directly.
+Type `llm`, and a Deployment runs a language model on the GPU of your tab, with [WebLLM](https://webllm.mlc.ai) and WebGPU. The tab pulls the model like an image, and `kubectl describe pod` shows the events. Then `kubectl exec -it deploy/llm -- chat` talks to it. Close the tab, and the pod moves to another tab with WebGPU.
 
 {{< admonition type=note title="Needs WebGPU" open=true >}}
 `llm` needs a browser with WebGPU, for example a current Chrome or Edge. The first start downloads about 1 GB of model weights from Hugging Face. After that, they come from the browser cache.
