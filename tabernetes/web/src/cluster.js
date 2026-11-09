@@ -95,6 +95,7 @@ const methods = {
     let name = "";
     const info = await globalThis.tabernetes.prepareJoin((label) => open(id, label, { dc: name }));
     name = info.name;
+    tabs.get(id)?.nodes.push(name);
     return info;
   },
 };
@@ -111,7 +112,8 @@ self.onconnect = (e) => {
         // The tab holds this lock while it is open.
         navigator.locks.request(data.lock, () => {
           tabs.delete(id);
-          for (const name of port.nodes) globalThis.tabernetes?.dropTab(name);
+          // Its node, and the nodes from join: their WebRTC connections ended with it.
+          for (const name of port.nodes) globalThis.tabernetes?.dropNode(name);
         });
         const needBinary = binary === null;
         if (needBinary) binary = id;

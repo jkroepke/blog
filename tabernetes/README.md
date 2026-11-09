@@ -75,7 +75,8 @@ browser tab (single wasm binary)                     docker run tabernetes
   node and renews the node leases in between (timers of a hidden tab may fire
   only once a minute). WebRTC does not exist in workers: the data channels of
   a node from `join` stay in the tab that ran `join`, and go on to the worker
-  over MessagePorts. Without SharedWorker or Web Locks (Chrome on Android),
+  over MessagePorts. When that tab closes, the node agent exits, and the
+  worker deletes its node. Without SharedWorker or Web Locks (Chrome on Android),
   the tab runs the control plane itself, as before.
 - `llm [model]` runs a language model on the GPU of the tab. The tab node
   (`k8s/tabernetes/tabnode.go`) has no

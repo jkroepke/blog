@@ -114,7 +114,7 @@ var (
 	tabErr  error
 )
 
-// startTabNode registers the tab as a node, once. It fails without WebGPU.
+// startTabNode registers the tab as a node, once.
 func startTabNode(ctx context.Context) (*tabNode, error) {
 	tabOnce.Do(func() { tab, tabErr = newTabNode(ctx) })
 	if tabErr != nil {

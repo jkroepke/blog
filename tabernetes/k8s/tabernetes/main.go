@@ -283,6 +283,11 @@ func main() {
 			c, err = follow(js.Global().Get("tabernetesCluster"))
 		} else {
 			c, err = boot()
+			// a tab that runs the control plane itself is a node too; the
+			// SharedWorker has no document and is none
+			if err == nil && js.Global().Get("document").Truthy() {
+				registerTab()
+			}
 		}
 		return nil, err
 	})
@@ -370,10 +375,10 @@ func main() {
 			return c.prepareTab(open)
 		})
 	}))
-	// dropTab(name: string) removes a closed tab and its node.
-	api.Set("dropTab", js.FuncOf(func(this js.Value, a []js.Value) any {
+	// dropNode(name: string) removes a node of a closed tab (tabs.go).
+	api.Set("dropNode", js.FuncOf(func(this js.Value, a []js.Value) any {
 		name := a[0].String()
-		go dropTab(name)
+		go dropNode(name)
 		return nil
 	}))
 

@@ -104,8 +104,8 @@ func llmCmd(ctx context.Context, hc interp.HandlerContext, args []string) error 
 		}
 	}
 
-	fmt.Fprintln(hc.Stdout, "Each line goes to the pod: kubectl exec -i llm -- chat. Ctrl-C stops, Ctrl-D ends.")
-	fmt.Fprintln(hc.Stdout, "The OpenAI API: kubectl port-forward pod/llm 8000, then proxy 8000 or wget.")
+	fmt.Fprintln(hc.Stdout, "Each line goes to the pod: kubectl exec -i llm -- chat. Ctrl-C or Ctrl-D takes you back to the shell.")
+	fmt.Fprintln(hc.Stdout, "The OpenAI API, from the shell: kubectl port-forward pod/llm 8000, then proxy 8000 or wget.")
 	err = llmChat(ctx)
 	fmt.Fprintln(hc.Stdout, "The pod keeps running: llm chats again, kubectl delete pod llm frees the GPU.")
 	return err

@@ -47,21 +47,12 @@ var (
 // a Promise of a MessagePort. The result tells the tab its name and address
 // and has what its kubectl and kubelet need.
 func (c *cluster) prepareTab(open js.Value) (map[string]any, error) {
+	if _, err := adminClient(); err != nil {
+		return nil, err
+	}
 	tabsMu.Lock()
 	n := nextTab
 	nextTab++
-	if tabClient == nil {
-		cfg, err := clientcmd.BuildConfigFromFlags("", p("admin.kubeconfig"))
-		if err != nil {
-			tabsMu.Unlock()
-			return nil, err
-		}
-		cfg.UserAgent = "tabernetes/tabs"
-		if tabClient, err = kubernetes.NewForConfig(cfg); err != nil {
-			tabsMu.Unlock()
-			return nil, err
-		}
-	}
 	tabsMu.Unlock()
 	if n > 250 {
 		return nil, errors.New("too many tabs")
@@ -88,6 +79,22 @@ func (c *cluster) prepareTab(open js.Value) (map[string]any, error) {
 	return map[string]any{"name": name, "ip": ip, "token": c.adminToken, "files": files}, nil
 }
 
+// adminClient is the client of the worker for the nodes of the tabs.
+func adminClient() (kubernetes.Interface, error) {
+	tabsMu.Lock()
+	defer tabsMu.Unlock()
+	if tabClient != nil {
+		return tabClient, nil
+	}
+	cfg, err := clientcmd.BuildConfigFromFlags("", p("admin.kubeconfig"))
+	if err != nil {
+		return nil, err
+	}
+	cfg.UserAgent = "tabernetes/tabs"
+	tabClient, err = kubernetes.NewForConfig(cfg)
+	return tabClient, err
+}
+
 // renew renews the lease of the node of a tab for as long as the tab is open.
 func (m *tabMember) renew(name string) {
 	for {
@@ -103,31 +110,43 @@ func (m *tabMember) renew(name string) {
 	}
 }
 
-// dropTab removes a tab that was closed, its node and the pods on it, as
-// the pod garbage collector would do a minute later. A Deployment starts
-// them on another node.
-func dropTab(name string) {
+// dropNode removes a node of a tab that was closed: the node of the tab
+// itself, or a node from join, whose WebRTC connection ended with the tab.
+// The pods on the node go with it, as the pod garbage collector would do a
+// minute later; a Deployment starts them on another node.
+func dropNode(name string) {
 	tabsMu.Lock()
 	m := tabMembers[name]
 	delete(tabMembers, name)
 	tabsMu.Unlock()
-	if m == nil {
+	if m != nil {
+		close(m.stop)
+		m.node.ln.Close()
+	}
+	nodesMu.Lock()
+	jn := nodes[name]
+	delete(nodes, name)
+	nodesMu.Unlock()
+	if jn != nil {
+		jn.ln.Close()
+	}
+	cs, err := adminClient()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "tabs:", err)
 		return
 	}
-	close(m.stop)
-	m.node.ln.Close()
 	ctx := context.Background()
-	err := tabClient.CoreV1().Nodes().Delete(ctx, name, metav1.DeleteOptions{})
+	err = cs.CoreV1().Nodes().Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil && !apierrors.IsNotFound(err) {
 		fmt.Fprintln(os.Stderr, "tabs: deleting node", name+":", err)
 	}
-	pods, err := tabClient.CoreV1().Pods("").List(ctx, metav1.ListOptions{FieldSelector: "spec.nodeName=" + name})
+	pods, err := cs.CoreV1().Pods("").List(ctx, metav1.ListOptions{FieldSelector: "spec.nodeName=" + name})
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "tabs: pods of", name+":", err)
 		return
 	}
 	for _, pod := range pods.Items {
-		err := tabClient.CoreV1().Pods(pod.Namespace).Delete(ctx, pod.Name, metav1.DeleteOptions{GracePeriodSeconds: ptr.To(int64(0))})
+		err := cs.CoreV1().Pods(pod.Namespace).Delete(ctx, pod.Name, metav1.DeleteOptions{GracePeriodSeconds: ptr.To(int64(0))})
 		if err != nil && !apierrors.IsNotFound(err) {
 			fmt.Fprintln(os.Stderr, "tabs: deleting pod", pod.Name+":", err)
 		}
@@ -188,11 +207,17 @@ func follow(cfg js.Value) (*cluster, error) {
 	}
 	current = c
 
+	registerTab()
+	return c, nil
+}
+
+// registerTab makes this tab a node. A tab without WebGPU is a node too,
+// without tabernetes.dev/webgpu; a failure costs the tab only its node.
+func registerTab() {
 	status("registering this tab as the node " + tabNodeName)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 	if _, err := startTabNode(ctx); err != nil {
 		status("this tab is no node: " + err.Error())
 	}
-	return c, nil
 }
