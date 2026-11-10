@@ -19,7 +19,7 @@ Your tabs are nodes already, but they run containers in an emulator. For a real 
 
 {{< admonition type=example title="Run: kubectl run nginx" open=false >}}
 Your tab runs real container images, too. Type `kubectl run nginx --image=nginx:alpine`. Without a node from `join`, the pod lands on your tab.
-The tab pulls the image from Docker Hub, packs the layers into an initramfs and boots it with a small Linux kernel in [v86](https://github.com/copy/v86), an x86 emulator that compiles x86 code to WebAssembly. The serial console of the VM is the log of the container, so `kubectl logs nginx` works. `kubectl port-forward pod/nginx 8080:80` and `proxy 8080` show the nginx welcome page.
+The tab pulls the image from Docker Hub, packs the layers into an initramfs and boots it with a small Linux kernel in [v86](https://github.com/copy/v86), an x86 emulator that compiles x86 code to WebAssembly. The serial console of the VM is the log of the container, so `kubectl logs nginx` works. `kubectl port-forward pod/nginx 8080:80 &` and `proxy 8080` show the nginx welcome page. The `&` keeps the port-forward in the background, as in a real shell.
 
 The emulated CPU is a 32-bit x86, so the image needs a `linux/386` variant. The official images like alpine, busybox and nginx have one. Docker Hub sends no CORS headers, so your tab pulls through a small registry mirror of mine.
 
@@ -32,7 +32,7 @@ And yes, it runs Doom. After a join, type `doom`. [KubeDoom](https://github.com/
 
 {{< admonition type=example title="Run: llm" open=false >}}
 Type `llm`, and a Deployment runs a language model on the GPU of your tab, with [WebLLM](https://webllm.mlc.ai) and [WebGPU](https://webgpu.org/). The model is the image: `huggingface.co/mlc-ai/Qwen2.5-1.5B-Instruct-q4f16_1-MLC`, the Hugging Face repository with its weights. The tab pulls it like an image, and `kubectl describe pod` shows the events.
-Then `kubectl exec -it deploy/llm -- chat` talks to it, or `kubectl port-forward deploy/llm 8000` and `proxy 8000` open a chat page. Close the tab, and the pod moves to another tab with WebGPU.
+Then `kubectl exec -it deploy/llm -- chat` talks to it, or `kubectl port-forward deploy/llm 8000 &` and `proxy 8000` open a chat page. Close the tab, and the pod moves to another tab with WebGPU.
 
 `llm` needs a browser with WebGPU, for example a current Chrome or Edge. The first start downloads about 1 GB of model weights from Hugging Face. After that, they come from the browser cache.
 {{< /admonition >}}
