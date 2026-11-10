@@ -263,3 +263,15 @@ $kubernetes-blue-hover: #2456c4;
     background: $kubernetes-blue-hover;
   }
 }
+
+// ==============================
+// Admonitions in dark mode
+// ==============================
+// LoveIt colors the title of "example" with #651fff in both themes. On the
+// dark background that is purple on purple; a lighter shade reads.
+[theme=dark] .admonition.example {
+  .admonition-title,
+  i.icon {
+    color: #b39dff;
+  }
+}
