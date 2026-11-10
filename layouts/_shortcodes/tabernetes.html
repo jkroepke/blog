@@ -7,7 +7,15 @@
 {{- $gpu := resources.Get "tabernetes/gpuworker.js" -}}
 {{- $cluster := resources.Get "tabernetes/cluster.js" -}}
 {{- $css := resources.Get "tabernetes/xterm.css" -}}
-{{- if not (and $wasm $js $worker $gpu $cluster $css) -}}
+{{- /* Container images on tab nodes: v86 and the VM it boots (tabernetes/vm/). */ -}}
+{{- $vmWorker := resources.Get "tabernetes/vmworker.js" -}}
+{{- $v86 := resources.Get "tabernetes/v86.wasm" -}}
+{{- $bios := resources.Get "tabernetes/vm/seabios.bin" -}}
+{{- $kernel := resources.Get "tabernetes/vm/bzImage" -}}
+{{- $init := resources.Get "tabernetes/vm/init" -}}
+{{- /* A pull-through mirror of Docker Hub that sends CORS headers. */ -}}
+{{- $registry := "https://tabernetes.oracle.jkroepke.de" -}}
+{{- if not (and $wasm $js $worker $gpu $cluster $css $vmWorker $v86 $bios $kernel $init) -}}
   {{- warnf "Tabernetes is not built, run \"mise run build\" in tabernetes/ (%s)" .Page.File.Path -}}
 <p><em>The Tabernetes terminal is not built.</em></p>
 {{- else -}}
@@ -19,6 +27,11 @@
        so a cluster of its own, apart from tabs that still run the old one. */ -}}
 {{- $cluster = $cluster | fingerprint -}}
 {{- $css = $css | fingerprint -}}
+{{- $vmWorker = $vmWorker | fingerprint -}}
+{{- $v86 = $v86 | fingerprint -}}
+{{- $bios = $bios | fingerprint -}}
+{{- $kernel = $kernel | fingerprint -}}
+{{- $init = $init | fingerprint -}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 <style>
   .tabernetes-wrap { position: relative; display: flex; flex-direction: column; border-radius: 6px; background: #0d1117; overflow: hidden; }
@@ -45,7 +58,7 @@
   .tabernetes-vnc-close:hover { opacity: 1; }
 </style>
 <div class="tabernetes-wrap" id="tabernetes-wrap" hidden>
-  <div class="tabernetes-terminal" id="tabernetes" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}" data-gpu-worker="{{ $gpu.RelPermalink }}" data-cluster="{{ $cluster.RelPermalink }}" data-size="{{ len $wasm.Content }}"></div>
+  <div class="tabernetes-terminal" id="tabernetes" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}" data-gpu-worker="{{ $gpu.RelPermalink }}" data-cluster="{{ $cluster.RelPermalink }}" data-size="{{ len $wasm.Content }}" data-vm-worker="{{ $vmWorker.RelPermalink }}" data-vm-wasm="{{ $v86.RelPermalink }}" data-vm-bios="{{ $bios.RelPermalink }}" data-vm-kernel="{{ $kernel.RelPermalink }}" data-vm-init="{{ $init.RelPermalink }}" data-registry="{{ $registry }}"></div>
   <div class="tabernetes-status" id="tabernetes-status" aria-live="polite"></div>
   <button class="tabernetes-fullscreen" id="tabernetes-fullscreen" type="button" title="Full screen (Esc to leave)">Full screen</button>
 </div>
