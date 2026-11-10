@@ -268,8 +268,10 @@ $kubernetes-blue-hover: #2456c4;
 // Admonitions in dark mode
 // ==============================
 // LoveIt colors the title of "example" with #651fff in both themes. On the
-// dark background that is purple on purple; a lighter shade reads.
-[theme=dark] .admonition.example {
+// dark background that is purple on purple; a lighter shade reads. LoveIt
+// nests its admonition styles in .single .content, so this rule does, too:
+// otherwise the theme's rule wins on specificity.
+[theme=dark] .single .content .admonition.example {
   .admonition-title,
   i.icon {
     color: #b39dff;
