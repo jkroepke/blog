@@ -13,7 +13,7 @@ A control plane without nodes is boring. Type `join` and start the printed `dock
 
 And yes, it runs Doom. After a join, type `doom`. [KubeDoom](https://github.com/storax/kubedoom) starts on the node, and every pod in the default namespace is a monster. Shoot one, and KubeDoom deletes the pod. The Deployment brings it back, of course.
 
-Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running.
+Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running, the node from `join` included: every tab has its own WebRTC connection to it.
 
 Type `llm`, and a Deployment runs a language model on the GPU of your tab, with [WebLLM](https://webllm.mlc.ai) and WebGPU. The tab pulls the model like an image, and `kubectl describe pod` shows the events. Then `kubectl exec -it deploy/llm -- chat` talks to it. Close the tab, and the pod moves to another tab with WebGPU.
 
