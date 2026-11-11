@@ -11,7 +11,9 @@ Tabernetes is a real Kubernetes v1.37 control plane. Not a simulator. kube-apise
 
 Reload the page, and your cluster is still there. The browser keeps what a control plane node keeps on its disk: the data of etcd and the certificates. The files in your home directory stay, too. Only the nodes are new, because the old tabs are gone, and your Deployments start their pods again. `forget` deletes all of it.
 
-Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. The kubelet of a tab is not the real one, though. It is a small one that I wrote for the browser, like a [Virtual Kubelet](https://virtual-kubelet.io/): for the control plane it is a node, but there is no container runtime behind it, only your tab. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running, the node from `join` included: every tab has its own WebRTC connection to it.
+Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running, the node from `join` included: every tab has its own WebRTC connection to it.
+
+The kubelet of a tab is not the real one, though. It is a small one that I wrote for the browser, like a [Virtual Kubelet](https://virtual-kubelet.io/): for the control plane it is a node, but there is no container runtime behind it, only your tab.
 
 Check it out:
 
