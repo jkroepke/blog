@@ -142,7 +142,7 @@ browser tab (single wasm binary)                     docker run tabernetes
   kubelet: above 85 % of 4 GiB (or of half the quota of the origin), the
   least recently used layers go until 80 % are left. Layers of a running pod
   in any tab (a shared Web Lock per layer) and layers used in the last two
-  minutes stay. The worker merges the indexes of the layers with
+  minutes stay. The worker merges the indices of the layers with
   their whiteouts into the file system JSON of v86 (`web/src/rootfs.js`), with
   `/.tabernetes/init` and the container as `/.tabernetes/config.json` on top.
   v86 serves it over virtio 9p and reads a file from the tar only when the
