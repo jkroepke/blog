@@ -7,7 +7,9 @@ description = "A real Kubernetes control plane, compiled to WebAssembly: kube-ap
 cspConnectSrc = ["*"]
 +++
 
-Tabernetes is a real Kubernetes v1.37 control plane. Not a simulator. kube-apiserver, kube-controller-manager, kube-scheduler and kubectl are the upstream Go code, compiled to WebAssembly into one binary. The only replaced part is etcd: a small in-memory implementation of the etcd v3 API. Everything runs in your browser tab. Reload the page and the cluster is gone.
+Tabernetes is a real Kubernetes v1.37 control plane. Not a simulator. kube-apiserver, kube-controller-manager, kube-scheduler and kubectl are the upstream Go code, compiled to WebAssembly into one binary. The only replaced part is etcd: a small in-memory implementation of the etcd v3 API. Everything runs in your browser tab.
+
+Reload the page, and your cluster is still there. The browser keeps what a control plane node keeps on its disk: the data of etcd and the certificates. The files in your home directory stay, too. Only the nodes are new, because the old tabs are gone, and your Deployments start their pods again. `forget` deletes all of it.
 
 Your browser tab is a node, too. The control plane runs in a shared worker, and every tab of this page joins the cluster as a node. Open the page in a second tab, and `kubectl get nodes` shows `tab-2`. Close the first tab, and the cluster keeps running, the node from `join` included: every tab has its own WebRTC connection to it.
 
@@ -19,7 +21,9 @@ Your tabs are nodes already, but they run containers in an emulator. For a real 
 
 {{< admonition type=example title="Run: kubectl run nginx" open=false >}}
 Your tab runs real container images, too. Type `kubectl run nginx --image=nginx:alpine`. Without a node from `join`, the pod lands on your tab.
-The tab pulls the image from Docker Hub, packs the layers into an initramfs and boots it with a small Linux kernel in [v86](https://github.com/copy/v86), an x86 emulator that compiles x86 code to WebAssembly. The serial console of the VM is the log of the container, so `kubectl logs nginx` works.
+The tab pulls the image from Docker Hub and boots a small Linux kernel in [v86](https://github.com/copy/v86), an x86 emulator that compiles x86 code to WebAssembly. The serial console of the VM is the log of the container, so `kubectl logs nginx` works.
+
+The layers go to the storage of your browser, unpacked once, like `/var/lib/containerd` on a real node. The kernel mounts them over 9p as its root file system. So the image is not in the memory of the VM, even the Debian based `nginx` starts in a few seconds, and the next pull, in any tab or after a reload, is `already present on machine`.
 
 `kubectl port-forward pod/nginx 8080:80 &` and `proxy 8080` show the nginx welcome page. The `&` keeps the port-forward in the background, as in a real shell.
 
