@@ -18,8 +18,6 @@ hugo.linux
 # Frontend dependencies
 /node_modules/
 
-# tabernetes build output (built in CI, see tabernetes/mise.toml)
+# Tabernetes, downloaded from its release by "mise run tabernetes"
 /assets/tabernetes/
-/tabernetes/.build/
-/tabernetes/web/node_modules/
-/tabernetes/web/src/wasm_exec.js
+/static/tabernetes-proxy/

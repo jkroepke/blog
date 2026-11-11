@@ -1,13 +1,15 @@
-{{- /* Browser terminal with a Kubernetes control plane compiled to WebAssembly. See tabernetes/. */ -}}
-{{- /* Built by "mise run build" in tabernetes/. Fingerprinted, so a new build gets
-       new URLs and the page can keep the binary in the Cache Storage. */ -}}
+{{- /* Browser terminal with a Kubernetes control plane compiled to WebAssembly,
+       see https://github.com/jkroepke/tabernetes. */ -}}
+{{- /* A release of it, downloaded by "mise run tabernetes" (TABERNETES_VERSION in
+       mise.toml). Fingerprinted, so a new release gets new URLs and the page
+       can keep the binary in the Cache Storage. */ -}}
 {{- $wasm := resources.Get "tabernetes/tabernetes.wasm.zst" -}}
 {{- $js := resources.Get "tabernetes/tabernetes.js" -}}
 {{- $worker := resources.Get "tabernetes/unzstd.js" -}}
 {{- $gpu := resources.Get "tabernetes/gpuworker.js" -}}
 {{- $cluster := resources.Get "tabernetes/cluster.js" -}}
 {{- $css := resources.Get "tabernetes/xterm.css" -}}
-{{- /* Container images on tab nodes: v86 and the VM it boots (tabernetes/vm/). */ -}}
+{{- /* Container images on tab nodes: v86 and the VM it boots. */ -}}
 {{- $vmWorker := resources.Get "tabernetes/vmworker.js" -}}
 {{- $v86 := resources.Get "tabernetes/v86.wasm" -}}
 {{- $bios := resources.Get "tabernetes/vm/seabios.bin" -}}
@@ -16,8 +18,8 @@
 {{- /* A pull-through mirror of Docker Hub that sends CORS headers. */ -}}
 {{- $registry := "https://tabernetes.oracle.jkroepke.de" -}}
 {{- if not (and $wasm $js $worker $gpu $cluster $css $vmWorker $v86 $bios $kernel $init) -}}
-  {{- warnf "Tabernetes is not built, run \"mise run build\" in tabernetes/ (%s)" .Page.File.Path -}}
-<p><em>The Tabernetes terminal is not built.</em></p>
+  {{- warnf "Tabernetes is missing, run \"mise run tabernetes\" (%s)" .Page.File.Path -}}
+<p><em>The Tabernetes terminal is missing.</em></p>
 {{- else -}}
 {{- $wasm = $wasm | fingerprint -}}
 {{- $js = $js | fingerprint -}}
@@ -51,7 +53,7 @@
   .tabernetes-wrap:fullscreen, .tabernetes-wrap.tabernetes-fs { position: fixed; inset: 0; z-index: 9999; background: #0d1117; }
   .tabernetes-wrap:fullscreen, .tabernetes-wrap.tabernetes-fs { border-radius: 0; }
   .tabernetes-wrap:fullscreen .tabernetes-terminal, .tabernetes-wrap.tabernetes-fs .tabernetes-terminal { flex: 1; height: auto; min-height: 0; }
-  /* vnc and doom (tabernetes/web/src/vnc.js): the screen covers the terminal. */
+  /* vnc and doom (web/src/vnc.js of Tabernetes): the screen covers the terminal. */
   .tabernetes-vnc { position: absolute; inset: 0; z-index: 4; display: flex; background: #000; }
   .tabernetes-vnc-screen { flex: 1; min-width: 0; min-height: 0; }
   .tabernetes-vnc-close { position: absolute; top: 8px; left: 16px; z-index: 5; padding: .2rem .5rem; font-size: .8rem; color: #c9d1d9; background: #21262d; border: 1px solid #30363d; border-radius: 4px; cursor: pointer; opacity: .7; }

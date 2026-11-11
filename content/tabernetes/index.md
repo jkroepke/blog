@@ -47,4 +47,4 @@ Then `kubectl exec -it deploy/llm -- chat` talks to it, or `kubectl port-forward
 
 {{< tabernetes >}}
 
-The boot takes around 15 seconds. WebAssembly in the browser is single threaded, so the whole control plane shares one CPU core. The source is in the [blog repository](https://github.com/jkroepke/blog/tree/main/tabernetes).
+The boot takes around 15 seconds. WebAssembly in the browser is single threaded, so the whole control plane shares one CPU core. The source is on [GitHub](https://github.com/jkroepke/tabernetes).

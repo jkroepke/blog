@@ -1,5 +1,6 @@
 [tools]
 node = "26.13.0"
+gh = "2.103.1"
 markdownlint-cli2 = "latest"
 hugo-extended = "0.169.0"
 
@@ -12,3 +13,28 @@ version = "1.107.1"
 [tools."github:sass/dart-sass".platforms]
 linux-x64 = { asset_pattern = "dart-sass-*-linux-x64.tar.gz" }
 linux-arm64 = { asset_pattern = "dart-sass-*-linux-arm64.tar.gz" }
+
+[env]
+# The release of https://github.com/jkroepke/tabernetes that the page
+# /tabernetes/ embeds.
+# renovate: github-releases=jkroepke/tabernetes
+TABERNETES_VERSION = "v1.0.0"
+
+[tasks.tabernetes]
+description = "Download the Tabernetes release TABERNETES_VERSION into assets/tabernetes/"
+run = '''
+set -eu
+out=assets/tabernetes
+if [ "$(cat "$out/.version" 2>/dev/null)" = "$TABERNETES_VERSION" ]; then exit 0; fi
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+gh release download "$TABERNETES_VERSION" --repo jkroepke/tabernetes --pattern tabernetes.tar.gz --dir "$tmp"
+# Built and attested by the CI of jkroepke/tabernetes, nothing else.
+gh attestation verify "$tmp/tabernetes.tar.gz" --repo jkroepke/tabernetes
+rm -rf "$out"
+mkdir -p "$out" static/tabernetes-proxy
+tar -xzf "$tmp/tabernetes.tar.gz" -C "$out"
+# The service worker of "proxy <port>" needs the scope /tabernetes-proxy/.
+mv "$out/proxy-sw.js" static/tabernetes-proxy/sw.js
+echo "$TABERNETES_VERSION" > "$out/.version"
+'''
