@@ -18,7 +18,7 @@ linux-arm64 = { asset_pattern = "dart-sass-*-linux-arm64.tar.gz" }
 # The release of https://github.com/jkroepke/tabernetes that the page
 # /tabernetes/ embeds.
 # renovate: github-releases=jkroepke/tabernetes
-TABERNETES_VERSION = "v1.4.0"
+TABERNETES_VERSION = "v1.6.0"
 
 [tasks.tabernetes]
 description = "Download the Tabernetes release TABERNETES_VERSION into assets/tabernetes/"
