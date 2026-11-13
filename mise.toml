@@ -1,6 +1,6 @@
 [tools]
 node = "26.13.0"
-gh = "2.103.1"
+gh = "2.103.3"
 markdownlint-cli2 = "latest"
 hugo-extended = "0.169.0"
 
