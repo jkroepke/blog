@@ -14,6 +14,9 @@
 {{- $v86 := resources.Get "tabernetes/v86.wasm" -}}
 {{- $kernel := resources.Get "tabernetes/vm/vmlinux" -}}
 {{- $init := resources.Get "tabernetes/vm/init" -}}
+{{- /* Optional: JIT modules of the pod kernel, so the first pods start
+       sooner. Without them pods still run, only slower. */ -}}
+{{- $jit := resources.Get "tabernetes/jit.bin" -}}
 {{- /* A pull-through mirror of Docker Hub that sends CORS headers. */ -}}
 {{- $registry := "https://tabernetes.oracle.jkroepke.de" -}}
 {{- if not (and $wasm $js $worker $gpu $cluster $css $vmWorker $v86 $kernel $init) -}}
@@ -32,6 +35,7 @@
 {{- $v86 = $v86 | fingerprint -}}
 {{- $kernel = $kernel | fingerprint -}}
 {{- $init = $init | fingerprint -}}
+{{- with $jit }}{{ $jit = . | fingerprint }}{{ end -}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 <style>
   .tabernetes-wrap { position: relative; display: flex; flex-direction: column; border-radius: 6px; background: #0d1117; overflow: hidden; }
@@ -58,7 +62,7 @@
   .tabernetes-vnc-close:hover { opacity: 1; }
 </style>
 <div class="tabernetes-wrap" id="tabernetes-wrap" hidden>
-  <div class="tabernetes-terminal" id="tabernetes" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}" data-gpu-worker="{{ $gpu.RelPermalink }}" data-cluster="{{ $cluster.RelPermalink }}" data-size="{{ len $wasm.Content }}" data-vm-worker="{{ $vmWorker.RelPermalink }}" data-vm-wasm="{{ $v86.RelPermalink }}" data-vm-kernel="{{ $kernel.RelPermalink }}" data-vm-init="{{ $init.RelPermalink }}" data-registry="{{ $registry }}"></div>
+  <div class="tabernetes-terminal" id="tabernetes" data-wasm="{{ $wasm.RelPermalink }}" data-worker="{{ $worker.RelPermalink }}" data-gpu-worker="{{ $gpu.RelPermalink }}" data-cluster="{{ $cluster.RelPermalink }}" data-size="{{ len $wasm.Content }}" data-vm-worker="{{ $vmWorker.RelPermalink }}" data-vm-wasm="{{ $v86.RelPermalink }}" data-vm-kernel="{{ $kernel.RelPermalink }}" data-vm-init="{{ $init.RelPermalink }}"{{ with $jit }} data-vm-jit="{{ .RelPermalink }}"{{ end }} data-registry="{{ $registry }}"></div>
   <div class="tabernetes-status" id="tabernetes-status" aria-live="polite"></div>
   <button class="tabernetes-fullscreen" id="tabernetes-fullscreen" type="button" title="Full screen (Esc to leave)">Full screen</button>
 </div>
