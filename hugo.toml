@@ -97,7 +97,8 @@ enableEmoji = true
   dateFormat = "2006-01-02"
   title = "Joe's Personal Blog"
   description = "Technical articles about Kubernetes, cloud-native infrastructure, observability, platform engineering, containers, security, and open source."
-  images = ["/avatar.png"]
+  # Open Graph and Twitter card image of pages without a featured image.
+  images = ["avatar.jpeg"]
 
   [params.author]
     name = "Jan-Otto Kröpke"
@@ -195,6 +196,13 @@ enableEmoji = true
       id = "G-8VP248SLLT"
       anonymizeIP = true
       respectDoNotTrack = true
+
+  # LoveIt writes this as a meta tag, because GitHub Pages cannot set headers.
+  # The Tabernetes page needs 'wasm-unsafe-eval' and connect-src * (wget in its
+  # terminal downloads with fetch()). img-src * already allows any host, so
+  # connect-src * on the other pages adds little.
+  [params.security]
+    contentSecurityPolicy = "default-src 'none';object-src 'none';script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://*.googletagmanager.com;font-src 'self';style-src 'self' 'unsafe-inline';manifest-src 'self';img-src * data:;connect-src 'self' *;frame-src https://www.googletagmanager.com;base-uri 'self';form-action 'self';"
 
   [params.cookieconsent]
     enable = true

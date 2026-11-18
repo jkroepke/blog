@@ -3,8 +3,6 @@ title = "Tabernetes: Kubernetes in your browser tab"
 # The page was /kubernetes/ before.
 aliases = ["/kubernetes/"]
 description = "A real Kubernetes control plane, compiled to WebAssembly: kube-apiserver, kube-controller-manager, kube-scheduler and kubectl run in your browser. Join a real node with Docker and WebRTC."
-# wget in the terminal downloads with fetch(), so this page may connect anywhere.
-cspConnectSrc = ["*"]
 +++
 
 Tabernetes is a real Kubernetes v1.37 control plane. Not a simulator. kube-apiserver, kube-controller-manager, kube-scheduler and kubectl are the upstream Go code, compiled to WebAssembly into one binary. The only replaced part is etcd: a small in-memory implementation of the etcd v3 API. Everything runs in your browser tab.

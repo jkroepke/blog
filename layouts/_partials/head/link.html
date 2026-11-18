@@ -1,3 +1,4 @@
+<!-- htmlhint-disable doctype-first spec-char-escape -->
 {{- $cdn := .Scratch.Get "cdn" | default dict -}}
 {{- $fingerprint := .Scratch.Get "fingerprint" -}}
 
@@ -17,6 +18,29 @@
 {{- end -}}
 
 <link rel="canonical" href="{{ .Permalink }}" />
+
+{{- /* schema.org Person of the author, referenced by its @id. */ -}}
+{{- $author := .Site.Params.author -}}
+{{- with $author.name -}}
+    {{- $person := dict
+        "@context" "https://schema.org"
+        "@type" "Person"
+        "@id" ("/about/#person" | absURL)
+        "name" .
+    -}}
+    {{- with $author.link -}}
+        {{- $person = merge $person (dict "url" (. | absURL)) -}}
+        <link rel="author" href="{{ . | absURL }}">
+    {{- end -}}
+    {{- with $author.jobTitle -}}
+        {{- $person = merge $person (dict "jobTitle" .) -}}
+    {{- end -}}
+    {{- with $author.sameAs -}}
+        {{- $person = merge $person (dict "sameAs" .) -}}
+    {{- end -}}
+    <script type="application/ld+json">{{ $person | jsonify | safeJS }}</script>
+{{- end -}}
+
 <link rel="describedby" href="{{ "/llms.txt" | absURL }}" />
 {{- with .OutputFormats.Get "markdown" -}}
     <link rel="alternate" type="text/markdown" href="{{ .Permalink }}" />
