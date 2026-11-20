@@ -1,0 +1,55 @@
+{{- /* Copy of the embedded template of Hugo v0.169.0 (tpl/tplimpl/embedded/templates/_partials/_funcs/get-page-images.html). */ -}}
+{{- /* Change: LoveIt sets the image of a post in featuredImage, which Hugo does not know. Without this, opengraph.html and twitter_cards.html used the site image for every post (dillonzq/LoveIt#789). */ -}}
+{{- $imgs := slice }}
+{{- $imgParams := .Params.images }}
+{{- if not $imgParams }}{{ with .Params.featuredImage }}{{ $imgParams = slice . }}{{ end }}{{ end }}
+{{- $resources := .Resources.ByType "image" -}}
+{{/* Find featured image resources if the images parameter is empty. */}}
+{{- if not $imgParams }}
+	{{- $featured := $resources.GetMatch "*feature*" -}}
+	{{- if not $featured }}{{ $featured = $resources.GetMatch "{*cover*,*thumbnail*}" }}{{ end -}}
+	{{- with $featured }}
+		{{- $imgs = $imgs | append (dict
+			"Image" .
+			"RelPermalink" .RelPermalink
+			"Permalink" .Permalink
+		)
+		}}
+	{{- end }}
+{{- end }}
+{{/* Use the first one of site images as the fallback. */}}
+{{- if and (not $imgParams) (not $imgs) }}
+	{{- with site.Params.images }}
+		{{- $imgParams = first 1 . }}
+	{{- end }}
+{{- end }}
+{{/* Parse page's images parameter. */}}
+{{- range $imgParams }}
+	{{- $img := . }}
+	{{- $url := urls.Parse $img }}
+	{{- if eq $url.Scheme "" }}
+		{{/* Internal image: check page resources first, then global resources. */}}
+		{{- with or ($resources.GetMatch $img) (resources.GetMatch $img) -}}
+			{{- $imgs = $imgs | append (dict
+				"Image" .
+				"RelPermalink" .RelPermalink
+				"Permalink" .Permalink
+			)
+			}}
+		{{- else }}
+			{{- $imgs = $imgs | append (dict
+				"RelPermalink" (relURL $img)
+				"Permalink" (absURL $img)
+			)
+			}}
+		{{- end }}
+	{{- else }}
+		{{/* External image */}}
+		{{- $imgs = $imgs | append (dict
+			"RelPermalink" $img
+			"Permalink" $img
+		)
+		}}
+	{{- end }}
+{{- end }}
+{{- return $imgs }}

@@ -97,7 +97,8 @@ enableEmoji = true
   dateFormat = "2006-01-02"
   title = "Joe's Personal Blog"
   description = "Technical articles about Kubernetes, cloud-native infrastructure, observability, platform engineering, containers, security, and open source."
-  images = ["/avatar.png"]
+  # Open Graph and Twitter card image of pages without a featured image.
+  images = ["avatar.jpeg"]
 
   [params.author]
     name = "Jan-Otto Kröpke"
