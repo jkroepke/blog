@@ -3,7 +3,7 @@ date = '2025-08-07T21:12:46+02:00'
 title = 'The False Security of Pinned GitHub Actions Commit Hashes'
 description = 'A commit from a fork can hide behind the name of a trusted action. Why a pinned commit hash in GitHub Actions does not prove where the code comes from.'
 categories = ['GitHub']
-tags = ['CI/CD', 'GitHub', 'Security']
+tags = ['CI-CD', 'GitHub', 'Security']
 featuredImage = 'images/wttr-github-actions.png'
 +++
 
