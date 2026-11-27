@@ -11,7 +11,8 @@ Since Kubernetes v1.36, [image volumes](https://kubernetes.io/docs/tasks/configu
 
 In this model, the application team publishes the application artifact, while the platform team provides and maintains the environment required to run it. Kubernetes combines both when the Pod starts, so the application team no longer needs to package Java, operating system libraries, and CA certificates into every application image.
 
-In my view, image volumes add a lightweight PaaS-style runtime layer to Kubernetes. Developers provide the application, while the platform provides the runtime, security patches, and rollout process. This does not require a large and hard-to-maintain ecosystem of buildpacks, custom resources, operators, or dedicated deployment APIs. The model continues to use standard Kubernetes Deployments, OCI registries, health probes, and rolling updates.
+In my view, image volumes add a lightweight PaaS-style runtime layer to Kubernetes. Developers provide the application, while the platform provides the runtime, security patches, and rollout process.
+This does not require a large and hard-to-maintain ecosystem of buildpacks, custom resources, operators, or dedicated deployment APIs. The model continues to use standard Kubernetes Deployments, OCI registries, health probes, and rolling updates.
 
 The concept itself is not new. Before containers and Kubernetes became common, operations teams maintained operating systems and language runtimes, while application teams deployed JARs, WARs, or other application artifacts onto these prepared environments.
 
@@ -51,7 +52,8 @@ This is where platform-managed runtimes become interesting again. A platform tea
 
 ## Separating the Application from the Runtime
 
-An [image volume](https://kubernetes.io/docs/concepts/storage/volumes/#image) represents an OCI image or artifact whose filesystem is mounted read-only into a container. The normal container image can therefore provide the runtime, while the image volume provides the application. Kubernetes resolves the volume when the Pod starts and uses the existing image-pull mechanisms to retrieve it from an OCI registry.
+An [image volume](https://kubernetes.io/docs/concepts/storage/volumes/#image) represents an OCI image or artifact whose filesystem is mounted read-only into a container. The normal container image can therefore provide the runtime, while the image volume provides the application.
+Kubernetes resolves the volume when the Pod starts and uses the existing image-pull mechanisms to retrieve it from an OCI registry.
 
 The application team can package the JAR in an OCI image based on `scratch`:
 

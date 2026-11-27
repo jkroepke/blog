@@ -13,7 +13,7 @@ But could someone change a trusted action without anyone knowing?
 
 In this post, a problem with how GitHub forks work will be shown. This problem lets a bad person put their own code into a trusted action, even if they lack permission to change the action.
 
-## How Github actions Works
+## How GitHub Actions Works
 
 Imagine a team works on a project.
 The team's workflow uses `actions/checkout@v3`.
@@ -60,7 +60,7 @@ So, a person can fork `actions/checkout` and add some bad code to their copy:
          if (!repositoryPath ||
 ```
 
-For demo purpose, a weather report from [wttr.in](https://wttr.in) is displayed in the post run step. 
+For demo purpose, a weather report from [wttr.in](https://wttr.in) is displayed in the post run step.
 Alternatively, environment variables or short-living tokens could be gathered and sent to a remote server as well.
 
 A person can make this malicious commit appear even more legitimate.
@@ -68,7 +68,7 @@ By setting the author and committer details,
 a person can make the commit look like it comes from the official `github-actions[bot]`.
 
 ```bash
-GIT_AUTHOR_NAME="github-actions[bot]" \                                      
+GIT_AUTHOR_NAME="github-actions[bot]" \
 GIT_AUTHOR_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
 GIT_COMMITTER_NAME="github-actions[bot]" \
 GIT_COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
