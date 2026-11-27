@@ -42,6 +42,17 @@ $project-muted: #6b6b75;
     margin: .5rem 0 0;
   }
 
+  // LoveIt underlines every link in content. The card already marks its
+  // links as links, so underline them only on hover and focus.
+  a:not(.lightgallery, .header-mark) {
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+
   .project-card-header {
     display: flex;
     align-items: flex-start;
