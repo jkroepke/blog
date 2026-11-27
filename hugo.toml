@@ -153,6 +153,11 @@ enableEmoji = true
     noFavicon = false
     svgFavicon = "/favicon.svg"
   # LoveIt NEW | 0.2.0 Search config
+  # Widths of the WebP copies in the srcset of content images (layouts/_partials/plugin/img.html).
+  # LoveIt makes one 800 px copy and then falls back to the original PNG on wide or dense screens.
+  [params.image]
+    widths = [480, 768, 1024, 1440, 1920, 2560]
+
   [params.search]
     enable = true
     type = "lunr"
@@ -266,7 +271,7 @@ enableEmoji = true
 
 # LLM-friendly output formats
 [outputs]
-  home = ["html", "rss", "llms", "llmsfull"]
+  home = ["html", "rss", "json", "llms", "llmsfull"]
   page = ["html", "markdown"]
 
 [outputFormats]
@@ -287,33 +292,5 @@ enableEmoji = true
     root = true
 
 [module]
-  # Defining asset mounts replaces Hugo's default assets mount, so keep it explicitly.
-  [[module.mounts]]
-    source = "assets"
-    target = "assets"
-
-  # Expose npm browser distributions at the paths expected by LoveIt.
-  [[module.mounts]]
-    source = "node_modules/autocomplete.js/dist"
-    target = "assets/lib/autocomplete"
-  [[module.mounts]]
-    source = "node_modules/clipboard/dist"
-    target = "assets/lib/clipboard"
-  [[module.mounts]]
-    source = "node_modules/cookieconsent/build"
-    target = "assets/lib/cookieconsent"
-  [[module.mounts]]
-    source = "node_modules/lazysizes"
-    target = "assets/lib/lazysizes"
-  [[module.mounts]]
-    source = "node_modules/lightgallery"
-    target = "assets/lib/lightgallery"
-  [[module.mounts]]
-    source = "node_modules/lunr"
-    target = "assets/lib/lunr"
-  [[module.mounts]]
-    source = "node_modules/sharer.js"
-    target = "assets/lib/sharer"
-
   [[module.imports]]
     path = "github.com/dillonzq/LoveIt"
