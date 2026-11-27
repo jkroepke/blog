@@ -1,7 +1,7 @@
 +++
 date = '2025-07-09T21:12:46+02:00'
 title = 'DNS Hijacking in Kubernetes'
-description = 'Kubernetes DNS, while convenient, harbors a security risk: a lack of understanding regarding its resolution mechanisms permits attackers to redirect cluster traffic without exploits, simply by creating specific namespaces and services. Effective protection hinges on policy, strict naming conventions, controlled permissions, and egress restrictions.'
+description = 'Anyone who can create namespaces and Services can redirect cluster traffic, no exploit needed. How DNS search paths and ndots allow it, and how to stop it.'
 categories = ['Kubernetes']
 tags = ['DNS', 'Kubernetes', 'Security']
 +++
@@ -75,12 +75,12 @@ kubectl create service externalname example \
   --external-name=wttr.in
 ```
 
-This command creates a service of type [`ExternalName`](https://kubernetes.io/docs/concepts/services-networking/service/#externalname). 
-This particular service type offers a way to link a name inside Kubernetes to an external DNS address. 
+This command creates a service of type [`ExternalName`](https://kubernetes.io/docs/concepts/services-networking/service/#externalname).
+This particular service type offers a way to link a name inside Kubernetes to an external DNS address.
 It functions like a special pointer, like a [CNAME record](https://en.wikipedia.org/wiki/CNAME_record) in standard DNS.
 
-Crucially, this service type does not process or proxy any traffic itself. 
-It directs other components within the cluster where to send requests for the given name. 
+Crucially, this service type does not process or proxy any traffic itself.
+It directs other components within the cluster where to send requests for the given name.
 In this attack scenario, the service named `example` directs traffic,
 originally seeking `example.com`, to the `wttr.in` endpoint instead.
 
@@ -93,7 +93,7 @@ kubectl run --rm -ti --image=alpine dns-test -- wget http://example.com -qO-
 This time, the result no longer corresponds to the example domain.
 Instead, it presents the weather forecast from `wttr.in`.
 
-```
+```text
 Weather report: Frankfurt am Main, Germany
 
      \  /       Partly cloudy
@@ -120,8 +120,8 @@ Effective strategies include:
 * **Securing External Connections with HTTPS:** Of course, consistently employing HTTPS for external connections secures the data payload. This practice encrypts communication and validates server identity, thereby mitigating man-in-the-middle attack consequences even when traffic redirection occurs.
 
 * **Prohibiting Namespace Names Matching Top-Level Domains:**
-  Implement admission controllers, such as [Kyverno](https://kyverno.io/) or 
-  a [builtin ValidatingAdmissionPolicy](https://gist.github.com/jkroepke/e75b403388389bed6913fb1bc6927ed7),
+  Implement admission controllers, such as [Kyverno](https://kyverno.io/) or
+  a [built-in ValidatingAdmissionPolicy](https://gist.github.com/jkroepke/e75b403388389bed6913fb1bc6927ed7),
   to reject namespace names that parallel top-level domains like `com`, `org`, `io`, and similar designations.
 
 * **Mandating Fully Qualified Domain Names in Applications:** Always append a trailing dot to domain names within applications. For instance, employ `example.com.`. This explicit addition signals to the resolver that the name stands complete, preventing any further appending of search path elements.

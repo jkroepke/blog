@@ -1,6 +1,7 @@
 +++
 title = "Projects"
 description = "Open source projects and Helm charts maintained by Jan-Otto Kröpke: helm-secrets, openvpn-auth-oauth2, windows_exporter, access-log-exporter, and charts in prometheus-community, grafana-community, and Sveltos."
+schemaType = "CollectionPage"
 +++
 
 Most of my free engineering time goes into open source. Almost every project here started as a fix for my own problem at work. Then other people had the same problem. In my opinion, that is the only good reason to start an open source project.

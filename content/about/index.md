@@ -1,6 +1,7 @@
 +++
 title = "About Jan-Otto Kröpke"
 description = "About Jan-Otto Kröpke, also known as Joe, Principal Cloud Architect writing about Kubernetes, cloud-native infrastructure, observability, platform engineering, and open source."
+schemaType = "ProfilePage"
 +++
 
 I'm **Jan-Otto Kröpke**, a Principal Cloud Architect focused on Kubernetes, cloud-native infrastructure, observability, platform engineering, and open source.

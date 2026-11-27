@@ -1,0 +1,195 @@
+{{- /*
+    Override of LoveIt's head/seo.html.
+
+    LoveIt writes one JSON-LD object per page: a BlogPosting for every page,
+    with an Organization as publisher that has an empty name. Google reports
+    that as an error, and the about, projects and tabernetes pages are no blog
+    posts. This file writes one @graph instead. All nodes point to the same
+    Person by its @id, so search engines and LLMs see the posts, the projects
+    and the profiles on GitHub and LinkedIn as the work of one person.
+
+    A page can choose its type with `schemaType` in its front matter:
+    ProfilePage, CollectionPage, SoftwareApplication or WebPage. Posts are
+    BlogPosting, list pages are CollectionPage.
+*/ -}}
+
+{{- with .Site.Params.verification.google -}}
+    <meta name="google-site-verification" content="{{ . }}" />
+{{- end -}}
+{{- with .Site.Params.verification.bing -}}
+    <meta name="msvalidate.01" content="{{ . }}" />
+{{- end -}}
+
+{{- $language := partialCached "function/language.html" .Site .Site.Language.Lang -}}
+{{- $lang := $language.locale | default .Site.Language.Locale -}}
+{{- $author := .Site.Params.author -}}
+{{- $home := .Site.Home -}}
+{{- $personID := "/about/#person" | absURL -}}
+{{- $websiteID := printf "%s#website" $home.Permalink -}}
+{{- $person := dict "@id" $personID -}}
+{{- $graph := slice -}}
+
+{{- /* The person behind the site, on every page. */ -}}
+{{- with $author.name -}}
+    {{- $node := dict "@type" "Person" "@id" $personID "name" . -}}
+    {{- with $author.alternateName -}}{{- $node = merge $node (dict "alternateName" .) -}}{{- end -}}
+    {{- with $author.link -}}{{- $node = merge $node (dict "url" (. | absURL)) -}}{{- end -}}
+    {{- with $author.jobTitle -}}{{- $node = merge $node (dict "jobTitle" .) -}}{{- end -}}
+    {{- with $author.sameAs -}}{{- $node = merge $node (dict "sameAs" .) -}}{{- end -}}
+    {{- with $author.knowsAbout -}}{{- $node = merge $node (dict "knowsAbout" .) -}}{{- end -}}
+    {{- with $author.image -}}
+        {{- with dict "Path" . | partial "function/schema-image.html" -}}
+            {{- $node = merge $node (dict "image" .) -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $graph = $graph | append $node -}}
+{{- end -}}
+
+{{- /* The site itself. */ -}}
+{{- $website := dict
+    "@type" "WebSite"
+    "@id" $websiteID
+    "url" $home.Permalink
+    "name" .Site.Title
+    "inLanguage" $lang
+    "author" $person
+    "publisher" $person
+-}}
+{{- with .Site.Params.description -}}{{- $website = merge $website (dict "description" .) -}}{{- end -}}
+{{- $graph = $graph | append $website -}}
+
+{{- /* Images of the page: the same order as Open Graph and Twitter Cards. */ -}}
+{{- $images := slice -}}
+{{- range partial "function/page-images.html" . -}}
+    {{- with dict "Path" . "Resources" $.Resources | partial "function/schema-image.html" -}}
+        {{- $images = $images | append . -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $published := cond .PublishDate.IsZero .Date .PublishDate -}}
+{{- $dates := dict -}}
+{{- if not $published.IsZero -}}
+    {{- $dates = merge $dates (dict "datePublished" ($published.Format "2006-01-02T15:04:05-07:00")) -}}
+{{- end -}}
+{{- if not .Lastmod.IsZero -}}
+    {{- $dates = merge $dates (dict "dateModified" (.Lastmod.Format "2006-01-02T15:04:05-07:00")) -}}
+{{- end -}}
+
+{{- $pageID := printf "%s#webpage" .Permalink -}}
+{{- $page := dict
+    "@id" $pageID
+    "url" .Permalink
+    "name" .Title
+    "inLanguage" $lang
+    "isPartOf" (dict "@id" $websiteID)
+-}}
+{{- with .Description -}}{{- $page = merge $page (dict "description" .) -}}{{- end -}}
+
+{{- /* Breadcrumbs: Home > section > page. Not on the home page. */ -}}
+{{- if not .IsHome -}}
+    {{- $items := slice (dict "@type" "ListItem" "position" 1 "name" "Home" "item" $home.Permalink) -}}
+    {{- $position := 2 -}}
+    {{- range .Ancestors.Reverse -}}
+        {{- if not .IsHome -}}
+            {{- $items = $items | append (dict "@type" "ListItem" "position" $position "name" .LinkTitle "item" .Permalink) -}}
+            {{- $position = add $position 1 -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $items = $items | append (dict "@type" "ListItem" "position" $position "name" .LinkTitle "item" .Permalink) -}}
+    {{- $breadcrumbID := printf "%s#breadcrumb" .Permalink -}}
+    {{- $graph = $graph | append (dict "@type" "BreadcrumbList" "@id" $breadcrumbID "itemListElement" $items) -}}
+    {{- $page = merge $page (dict "breadcrumb" (dict "@id" $breadcrumbID)) -}}
+{{- end -}}
+
+{{- $license := .Site.Params.license -}}
+
+{{- if .IsHome -}}
+    {{- $page = merge $page (dict "@type" "CollectionPage" "about" $person "name" .Site.Title) -}}
+    {{- with $images -}}{{- $page = merge $page (dict "primaryImageOfPage" (index . 0)) -}}{{- end -}}
+    {{- $graph = $graph | append $page -}}
+
+{{- else if and .IsPage (eq .Section "posts") -}}
+    {{- $page = merge $page (dict "@type" "WebPage") -}}
+    {{- $articleID := printf "%s#article" .Permalink -}}
+    {{- $article := dict
+        "@type" "BlogPosting"
+        "@id" $articleID
+        "url" .Permalink
+        "headline" .Title
+        "inLanguage" $lang
+        "mainEntityOfPage" (dict "@id" $pageID)
+        "isPartOf" (dict "@id" $websiteID)
+        "author" $person
+        "publisher" $person
+        "wordCount" .WordCount
+    -}}
+    {{- $article = merge $article $dates -}}
+    {{- with .Description -}}{{- $article = merge $article (dict "description" .) -}}{{- end -}}
+    {{- with $images -}}{{- $article = merge $article (dict "image" .) -}}{{- end -}}
+    {{- with .Params.tags -}}{{- $article = merge $article (dict "keywords" .) -}}{{- end -}}
+    {{- with .Params.categories -}}{{- $article = merge $article (dict "articleSection" .) -}}{{- end -}}
+    {{- with $license -}}{{- $article = merge $article (dict "license" .) -}}{{- end -}}
+    {{- with .OutputFormats.Get "markdown" -}}
+        {{- $article = merge $article (dict "encoding" (dict "@type" "MediaObject" "encodingFormat" "text/markdown" "contentUrl" .Permalink)) -}}
+    {{- end -}}
+    {{- $graph = $graph | append $page | append $article -}}
+
+{{- else if .IsPage -}}
+    {{- $type := .Params.schemaType | default "WebPage" -}}
+    {{- $page = merge $page $dates -}}
+    {{- with $images -}}{{- $page = merge $page (dict "primaryImageOfPage" (index . 0)) -}}{{- end -}}
+    {{- if eq $type "ProfilePage" -}}
+        {{- $page = merge $page (dict "@type" "ProfilePage" "mainEntity" $person) -}}
+        {{- $graph = $graph | append $page -}}
+    {{- else if eq $type "CollectionPage" -}}
+        {{- $page = merge $page (dict "@type" "CollectionPage" "about" $person) -}}
+        {{- /* The projects page lists the projects of data/projects.toml. */ -}}
+        {{- if .HasShortcode "projects" -}}
+            {{- $list := slice -}}
+            {{- range $i, $p := hugo.Data.projects.projects -}}
+                {{- $code := dict
+                    "@type" "SoftwareSourceCode"
+                    "name" $p.name
+                    "codeRepository" (printf "https://github.com/%s" $p.repo)
+                    "programmingLanguage" $p.language
+                    "description" $p.summary
+                -}}
+                {{- if eq $p.role "Author" -}}
+                    {{- $code = merge $code (dict "author" $person) -}}
+                {{- else -}}
+                    {{- $code = merge $code (dict "maintainer" $person) -}}
+                {{- end -}}
+                {{- with $p.tags -}}{{- $code = merge $code (dict "keywords" .) -}}{{- end -}}
+                {{- $list = $list | append (dict "@type" "ListItem" "position" (add $i 1) "item" $code) -}}
+            {{- end -}}
+            {{- $page = merge $page (dict "mainEntity" (dict "@type" "ItemList" "itemListElement" $list)) -}}
+        {{- end -}}
+        {{- $graph = $graph | append $page -}}
+    {{- else if eq $type "SoftwareApplication" -}}
+        {{- $appID := printf "%s#software" .Permalink -}}
+        {{- $app := dict
+            "@type" "SoftwareApplication"
+            "@id" $appID
+            "name" (.Params.schemaName | default .LinkTitle)
+            "url" .Permalink
+            "applicationCategory" "DeveloperApplication"
+            "operatingSystem" "Web browser"
+            "author" $person
+            "isAccessibleForFree" true
+        -}}
+        {{- with .Description -}}{{- $app = merge $app (dict "description" .) -}}{{- end -}}
+        {{- with .Params.schemaSameAs -}}{{- $app = merge $app (dict "sameAs" .) -}}{{- end -}}
+        {{- $page = merge $page (dict "@type" "WebPage" "mainEntity" (dict "@id" $appID)) -}}
+        {{- $graph = $graph | append $page | append $app -}}
+    {{- else -}}
+        {{- $page = merge $page (dict "@type" $type) -}}
+        {{- $graph = $graph | append $page -}}
+    {{- end -}}
+
+{{- else -}}
+    {{- /* Section, taxonomy and term pages. */ -}}
+    {{- $page = merge $page (dict "@type" "CollectionPage") -}}
+    {{- $graph = $graph | append $page -}}
+{{- end -}}
+
+<script type="application/ld+json">{{ dict "@context" "https://schema.org" "@graph" $graph | jsonify | safeJS }}</script>

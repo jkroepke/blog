@@ -1,7 +1,7 @@
 +++
 date = '2025-08-07T21:12:46+02:00'
 title = 'The False Security of Pinned GitHub Actions Commit Hashes'
-description = 'An exploit reveals a hidden security flaw in GitHub Actions. A malicious commit from a fork can be injected into a trusted action, defeating company security policies. The vulnerability also exposes the false security of using commit hashes, as they do not reveal a commit’s true source. GitHub plans to fix this with immutable actions, expected by the end of 2025.'
+description = 'A commit from a fork can hide behind the name of a trusted action. Why a pinned commit hash in GitHub Actions does not prove where the code comes from.'
 categories = ['GitHub']
 tags = ['CI/CD', 'GitHub', 'Security']
 featuredImage = 'images/wttr-github-actions.png'
@@ -13,7 +13,7 @@ But could someone change a trusted action without anyone knowing?
 
 In this post, a problem with how GitHub forks work will be shown. This problem lets a bad person put their own code into a trusted action, even if they lack permission to change the action.
 
-## How Github actions Works
+## How GitHub Actions Works
 
 Imagine a team works on a project.
 The team's workflow uses `actions/checkout@v3`.
@@ -60,7 +60,7 @@ So, a person can fork `actions/checkout` and add some bad code to their copy:
          if (!repositoryPath ||
 ```
 
-For demo purpose, a weather report from [wttr.in](https://wttr.in) is displayed in the post run step. 
+For demo purpose, a weather report from [wttr.in](https://wttr.in) is displayed in the post run step.
 Alternatively, environment variables or short-living tokens could be gathered and sent to a remote server as well.
 
 A person can make this malicious commit appear even more legitimate.
@@ -68,7 +68,7 @@ By setting the author and committer details,
 a person can make the commit look like it comes from the official `github-actions[bot]`.
 
 ```bash
-GIT_AUTHOR_NAME="github-actions[bot]" \                                      
+GIT_AUTHOR_NAME="github-actions[bot]" \
 GIT_AUTHOR_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
 GIT_COMMITTER_NAME="github-actions[bot]" \
 GIT_COMMITTER_EMAIL="41898282+github-actions[bot]@users.noreply.github.com" \
@@ -79,8 +79,7 @@ Now, the fork has a new [commit](https://github.com/actions/checkout/commit/2c43
 
 {{< image src="images/commit.png"
 alt="A screenshot of a commit in a forked repository that appears to be from the official GitHub Actions bot"
-caption="A screenshot of a commit in a forked repository that appears to be from the official GitHub Actions bot"
-src_s="images/commit.png" src_l="images/commit.png" >}}
+caption="A screenshot of a commit in a forked repository that appears to be from the official GitHub Actions bot" >}}
 
 ## Using the Bad Code
 
@@ -122,10 +121,9 @@ Many companies have an [action policy](https://docs.github.com/en/organizations/
 to only use actions that GitHub created.
 This policy stops people from using actions from unknown places.
 
-{{< image src="images/permissions.png"
+{{< image src="images/policy.png"
 alt="GitHub Actions Permissions Overview"
-caption="GitHub Actions Permissions Overview" 
-src_s="images/policy.png" src_l="images/policy.png" >}}
+caption="GitHub Actions Permissions Overview" >}}
 
 The policy looks at the name of the action (`actions/checkout`).
 Since the modified policy uses the name `actions/checkout`, the policy allows it because

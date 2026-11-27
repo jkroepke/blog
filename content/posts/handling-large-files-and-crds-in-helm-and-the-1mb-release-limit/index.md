@@ -1,7 +1,7 @@
 +++
 date = '2026-02-18T22:35:00+02:00'
 title = 'Handling Large Files and CRDs in Helm and the 1MB Release Limit'
-description = 'Helm releases are stored as Kubernetes Secrets, which have a hard 1 MiB size limit. This post explores why this limit exists, how large CRDs exacerbate the problem, and practical techniques for chart maintainers to reduce release size using subcharts, minification, and compression.'
+description = 'Helm stores every release in a Kubernetes Secret, and Secrets have a 1 MiB limit. How to measure release size and keep CRD-heavy charts below it.'
 categories = ['Kubernetes']
 tags = ['Kubernetes', 'Helm']
 +++
@@ -241,6 +241,7 @@ This applies to Grafana Dashboards as well. Grafana Dashboards are often large J
 
 The 1 MiB Kubernetes object limit isn’t going away—and Helm releases live inside Kubernetes objects. So for chart maintainers, the right mindset is to treat release size as a real constraint, assume CRDs will grow, and design chart structure so CRDs don’t bloat the release state.
 
-There have been attempts to fix this upstream, such as the 2022 proposal [HIP 0013: Support Helm release data stored in multiple K8s Secrets](https://github.com/helm/community/pull/256) or discussions around [changing the compression algorithm](https://github.com/helm/community/pull/256#discussion_r1648565157). However, these initiatives haven't seen significant progress. Until such architectural changes land in Helm core, the limit remains a hard constraint that chart maintainers must work around.
+There have been attempts to fix this upstream, such as the 2022 proposal [HIP 0013: Support Helm release data stored in multiple K8s Secrets](https://github.com/helm/community/pull/256) or discussions around [changing the compression algorithm](https://github.com/helm/community/pull/256#discussion_r1648565157).
+However, these initiatives haven't seen significant progress. Until such architectural changes land in Helm core, the limit remains a hard constraint that chart maintainers must work around.
 
 If you maintain operator-style charts, you’ll likely hit this sooner or later. The good news is that with a few structural tricks (especially the subchart approach), you can keep your releases healthy and future-proof without sacrificing UX or maintainability.
