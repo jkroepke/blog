@@ -5,7 +5,7 @@
   {{- $url := printf "https://github.com/%s" .repo }}
   <article class="project-card">
     <div class="project-card-header">
-      <span class="project-card-icon"><i class="{{ .icon }} fa-fw" aria-hidden="true"></i></span>
+      <span class="project-card-icon">{{ dict "Class" .icon | partial "plugin/icon.html" }}</span>
       <div>
         <h3 class="project-card-title"><a href="{{ $url }}" rel="noopener" target="_blank">{{ .name }}</a></h3>
         <span class="project-card-repo">{{ .repo }}</span>
@@ -20,9 +20,9 @@
         {{- range .tags }}<li>{{ . }}</li>{{ end }}
       </ul>
       <div class="project-card-links">
-        <a href="{{ $url }}" rel="noopener" target="_blank" title="Source code on GitHub"><i class="fab fa-github fa-fw" aria-hidden="true"></i> Code</a>
+        <a href="{{ $url }}" rel="noopener" target="_blank" title="Source code on GitHub">{{ dict "Class" "fab fa-github" | partial "plugin/icon.html" }} Code</a>
         {{- with .docs }}
-        <a href="{{ . }}" rel="noopener" target="_blank" title="Documentation"><i class="fas fa-book fa-fw" aria-hidden="true"></i> Docs</a>
+        <a href="{{ . }}" rel="noopener" target="_blank" title="Documentation">{{ dict "Class" "fas fa-book" | partial "plugin/icon.html" }} Docs</a>
         {{- end }}
       </div>
     </div>
@@ -35,7 +35,7 @@
   {{- $repoURL := printf "https://github.com/%s" .repo }}
   <article class="project-card">
     <div class="project-card-header">
-      <span class="project-card-icon"><i class="{{ .icon }} fa-fw" aria-hidden="true"></i></span>
+      <span class="project-card-icon">{{ dict "Class" .icon | partial "plugin/icon.html" }}</span>
       <div>
         <h3 class="project-card-title"><a href="{{ $repoURL }}" rel="noopener" target="_blank">{{ .org }}</a></h3>
         <span class="project-card-repo">{{ .repo }}</span>
@@ -53,7 +53,7 @@
     </ul>
     <div class="project-card-footer">
       <div class="project-card-links">
-        <a href="{{ $repoURL }}" rel="noopener" target="_blank" title="Source code on GitHub"><i class="fab fa-github fa-fw" aria-hidden="true"></i> Code</a>
+        <a href="{{ $repoURL }}" rel="noopener" target="_blank" title="Source code on GitHub">{{ dict "Class" "fab fa-github" | partial "plugin/icon.html" }} Code</a>
       </div>
     </div>
   </article>
