@@ -6,7 +6,6 @@ This is my personal blog where I share my thoughts, experiences, and insights on
 
 ```bash
 mise install
-npm install
 mise run tabernetes  # the pinned release of https://github.com/jkroepke/tabernetes for /tabernetes/
 hugo server
 ```

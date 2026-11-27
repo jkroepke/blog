@@ -15,9 +15,6 @@ hugo.linux
 
 /.idea/
 
-# Frontend dependencies
-/node_modules/
-
 # Tabernetes, downloaded from its release by "mise run tabernetes"
 /assets/tabernetes/
 /static/tabernetes-proxy/
