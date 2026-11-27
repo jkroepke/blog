@@ -1,7 +1,8 @@
 baseURL = "https://jkroepke.de/"
 
-# website title
-title = "Personal Blog | Jan-Otto Kröpke"
+# website title. LoveIt appends it to every page title ("<page> - <site>"),
+# so it stays short: search results cut titles at about 60 characters.
+title = "Jan-Otto Kröpke"
 
 # language locale ["en", "zh-CN", "fr", "pl", ...]
 locale = "en"
