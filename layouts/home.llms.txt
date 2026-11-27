@@ -12,6 +12,14 @@ This file provides a concise, LLM-friendly index of the published content on {{ 
 - [{{ $.Site.Params.author.name }}]({{ .Permalink }}): {{ $.Site.Params.author.jobTitle }} and author of this blog.
 {{- end }}
 {{- end }}
+{{- range slice "/projects" "/tabernetes" }}
+{{- with $.Site.GetPage . }}
+{{- $page := . }}
+{{- with .OutputFormats.Get "markdown" }}
+- [{{ $page.LinkTitle }}]({{ .Permalink }}){{ with $page.Description }}: {{ . }}{{ end }}
+{{- end }}
+{{- end }}
+{{- end }}
 
 ## Articles
 
@@ -26,6 +34,7 @@ This file provides a concise, LLM-friendly index of the published content on {{ 
 
 ## Optional
 
+- [All articles in one file]({{ "/llms-full.txt" | absURL }}): The Markdown of every article, newest first.
 - [Posts archive]({{ "/posts/" | absURL }}): Human-readable archive of all posts.
 - [Sitemap]({{ "/sitemap.xml" | absURL }}): Complete XML sitemap.
 - [Source repository]({{ .Site.Params.gitRepo }}): Hugo source for this site.

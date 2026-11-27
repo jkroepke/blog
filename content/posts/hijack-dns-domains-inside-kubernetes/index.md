@@ -1,7 +1,7 @@
 +++
 date = '2025-07-09T21:12:46+02:00'
 title = 'DNS Hijacking in Kubernetes'
-description = 'Kubernetes DNS, while convenient, harbors a security risk: a lack of understanding regarding its resolution mechanisms permits attackers to redirect cluster traffic without exploits, simply by creating specific namespaces and services. Effective protection hinges on policy, strict naming conventions, controlled permissions, and egress restrictions.'
+description = 'Anyone who can create namespaces and Services can redirect cluster traffic, no exploit needed. How DNS search paths and ndots allow it, and how to stop it.'
 categories = ['Kubernetes']
 tags = ['DNS', 'Kubernetes', 'Security']
 +++

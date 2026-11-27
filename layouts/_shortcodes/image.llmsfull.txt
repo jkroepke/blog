@@ -1,0 +1,10 @@
+{{- /* Like image.markdown.md, but llms-full.txt sits at the root: link the image by its absolute URL. */ -}}
+{{- $src := .Get "src" -}}
+{{- $alt := .Get "alt" | default $src -}}
+{{- $caption := .Get "caption" -}}
+{{- with .Page.Resources.Get $src }}{{ $src = .Permalink }}{{ else }}{{ $src = $src | absURL }}{{ end -}}
+![{{ $alt }}]({{ $src }})
+{{- with $caption }}
+
+*{{ . }}*
+{{- end }}

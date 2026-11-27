@@ -1,0 +1,25 @@
+# {{ .Site.Params.title }}: all articles
+
+> {{ .Site.Params.description }}
+
+This file holds the full Markdown of every article on {{ .Site.BaseURL }}, newest first. Written by {{ .Site.Params.author.name }} ({{ .Site.Params.author.jobTitle }}). The index is {{ "/llms.txt" | absURL }}.
+{{- with .Site.Params.license }} The articles are licensed under {{ . }}.{{ end }}
+{{- $posts := where .Site.RegularPages "Section" "posts" }}
+{{- range $posts.ByDate.Reverse }}
+
+
+---
+
+# {{ .Title }}
+{{- with .Description }}
+> {{ . }}
+{{- end }}
+
+Canonical URL: {{ .Permalink }}
+Published: {{ .Date.Format "2006-01-02" }}
+{{- if not .Lastmod.IsZero }}
+Last modified: {{ .Lastmod.Format "2006-01-02" }}
+{{- end }}
+
+{{ .RenderShortcodes | safeHTML }}
+{{- end }}

@@ -99,13 +99,36 @@ enableEmoji = true
   description = "Technical articles about Kubernetes, cloud-native infrastructure, observability, platform engineering, containers, security, and open source."
   # Open Graph and Twitter card image of pages without a featured image.
   images = ["avatar.jpeg"]
+  # License of the posts, for the JSON-LD of head/seo.html.
+  license = "https://creativecommons.org/licenses/by-nc/4.0/"
 
   [params.author]
     name = "Jan-Otto Kröpke"
     email = "mail@jkroepke.de"
     link = "/about/"
     jobTitle = "Principal Cloud Architect"
-    sameAs = ["https://github.com/jkroepke", "https://www.linkedin.com/in/jkroepke/"]
+    alternateName = "Joe"
+    image = "avatar.jpeg"
+    # Profiles of the same person. Search engines and LLMs use them to connect
+    # the posts with the projects and the profiles (head/seo.html).
+    sameAs = [
+      "https://github.com/jkroepke",
+      "https://www.linkedin.com/in/jkroepke/",
+      "https://gitlab.com/jkroepke",
+      "https://stackoverflow.com/users/8087167",
+      "https://medium.com/@jkroepke",
+    ]
+    knowsAbout = [
+      "Kubernetes",
+      "Helm",
+      "Prometheus",
+      "Observability",
+      "Platform engineering",
+      "Cloud-native infrastructure",
+      "Container security",
+      "GitOps",
+      "Open source",
+    ]
 
   [params.header]
     [params.header.title]
@@ -242,7 +265,7 @@ enableEmoji = true
 
 # LLM-friendly output formats
 [outputs]
-  home = ["html", "rss", "llms"]
+  home = ["html", "rss", "llms", "llmsfull"]
   page = ["html", "markdown"]
 
 [outputFormats]
@@ -250,6 +273,13 @@ enableEmoji = true
     permalinkable = true
   [outputFormats.llms]
     baseName = "llms"
+    isPlainText = true
+    mediaType = "text/plain"
+    notAlternative = true
+    root = true
+  # llms-full.txt: all posts in one file, for tools that read one URL only.
+  [outputFormats.llmsfull]
+    baseName = "llms-full"
     isPlainText = true
     mediaType = "text/plain"
     notAlternative = true

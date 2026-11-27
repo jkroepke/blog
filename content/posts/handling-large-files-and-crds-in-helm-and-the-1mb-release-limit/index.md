@@ -1,7 +1,7 @@
 +++
 date = '2026-02-18T22:35:00+02:00'
 title = 'Handling Large Files and CRDs in Helm and the 1MB Release Limit'
-description = 'Helm releases are stored as Kubernetes Secrets, which have a hard 1 MiB size limit. This post explores why this limit exists, how large CRDs exacerbate the problem, and practical techniques for chart maintainers to reduce release size using subcharts, minification, and compression.'
+description = 'Helm stores every release in a Kubernetes Secret, and Secrets have a 1 MiB limit. How to measure release size and keep CRD-heavy charts below it.'
 categories = ['Kubernetes']
 tags = ['Kubernetes', 'Helm']
 +++
