@@ -1,0 +1,64 @@
+{{- /* Override of LoveIt layouts/baseof.html: without the obsolete robots "noodp" tag (the Open Directory Project closed in 2017). Diff against upstream on every theme bump. */ -}}
+{{- partial "init.html" . -}}
+{{- $language := partialCached "function/language.html" .Site .Site.Language.Lang -}}
+
+<!DOCTYPE html>
+<html lang="{{ $language.locale }}" dir="{{ $language.direction }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
+
+        {{- partial "head/meta.html" . -}}
+        {{- partial "head/link.html" . -}}
+        {{- partial "head/seo.html" . -}}
+    </head>
+    <body data-header-desktop="{{ .Site.Params.header.desktopMode }}" data-header-mobile="{{ .Site.Params.header.mobileMode }}"{{ if not (partial "function/searchable.html" .) }} data-pagefind-ignore="all"{{ end }}>
+        {{- /* Check theme isDark before body rendering */ -}}
+        {{- $theme := .Site.Params.defaulttheme -}}
+        <script>
+          const query = window.matchMedia('(prefers-color-scheme: dark)');
+          function applyTheme() {
+            let theme = window.localStorage?.getItem('theme') || '{{ $theme }}';
+            let isDark = theme === 'dark' || (theme === 'auto' && query.matches);
+            document.body.setAttribute('theme', isDark? 'dark' : 'light');
+            document.body.setAttribute('cfg-theme', theme);
+          }
+
+          applyTheme();
+          query.addEventListener('change', applyTheme);
+        </script>
+
+        <a href="#main-content" class="skip-link">{{ T "skipToContent" }}</a>
+
+        <div id="mask"></div>
+
+        {{- /* Body wrapper */ -}}
+        <div class="wrapper">
+            {{- partial "header.html" . -}}
+            <main class="main" id="main-content" tabindex="-1">
+                <div class="container">
+                    {{- block "content" . }}{{ end -}}
+                </div>
+            </main>
+            {{- partial "footer.html" . -}}
+        </div>
+
+        <div id="fixed-buttons">
+            {{- /* top button */ -}}
+            <a href="#" id="back-to-top" class="fixed-button" title="{{ T `backToTop` }}">
+                {{ dict "Class" "fas fa-arrow-up" | partial "plugin/icon.html" }}
+            </a>
+        </div>
+
+        <div id="fixed-buttons-hidden">
+            {{- /* comment button */ -}}
+            <a href="#" id="view-comments" class="fixed-button" title="{{ T `viewComments` }}">
+                {{ dict "Class" "fas fa-comment" | partial "plugin/icon.html" }}
+            </a>
+        </div>
+
+        {{- /* Load JavaScript scripts and CSS */ -}}
+        {{- partial "assets.html" . -}}
+    </body>
+</html>
