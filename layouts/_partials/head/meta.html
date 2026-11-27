@@ -7,25 +7,9 @@
 {{- partial "twitter_cards.html" . -}}
 
 
-{{- $author := .Site.Params.author -}}
-{{- with $author.name -}}
-    {{- $person := dict
-        "@context" "https://schema.org"
-        "@type" "Person"
-        "@id" ("/about/#person" | absURL)
-        "name" .
-    -}}
-    {{- with $author.link -}}
-        {{- $person = merge $person (dict "url" (. | absURL)) -}}
-        <link rel="author" href="{{ . | absURL }}">
-    {{- end -}}
-    {{- with $author.jobTitle -}}
-        {{- $person = merge $person (dict "jobTitle" .) -}}
-    {{- end -}}
-    {{- with $author.sameAs -}}
-        {{- $person = merge $person (dict "sameAs" .) -}}
-    {{- end -}}
-    <script type="application/ld+json">{{ $person | jsonify | safeJS }}</script>
+{{- /* The Person JSON-LD is part of the @graph in head/seo.html. */ -}}
+{{- with .Site.Params.author.link -}}
+    <link rel="author" href="{{ . | absURL }}">
 {{- end -}}
 
 <meta name="application-name" content="{{ .Site.Params.app.title | default .Site.Title }}">

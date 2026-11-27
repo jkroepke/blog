@@ -1,7 +1,7 @@
 +++
 date = '2026-07-23T00:00:00+02:00'
 title = 'Kubernetes Image Volumes for Platform-Managed Runtimes - Part 1'
-description = 'Kubernetes image volumes make it possible to separate application artifacts from their language runtimes. This brings back a responsibility model that was common before containers: application teams deliver applications, while platform teams maintain and patch the runtime.'
+description = 'Kubernetes image volumes split the application from its runtime: application teams ship the app, platform teams own and patch Java and the OS.'
 categories = ['Kubernetes']
 tags = ['Containers', 'Kubernetes', 'Platform Engineering', 'Security']
 featuredImage = 'images/plattform-managed-runtime.png'
