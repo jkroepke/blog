@@ -2,7 +2,7 @@
 node = "26.13.1"
 gh = "2.105.0"
 markdownlint-cli2 = "latest"
-hugo-extended = "0.169.0"
+hugo-extended = "0.170.1"
 
 # Hugo's dartsass transpiler (LoveIt's plugin/style.html) needs the sass binary on PATH.
 # The aqua registry entry picks the musl Linux build, which does not run on glibc
